@@ -2,11 +2,12 @@
 
 | | |
 |---|---|
-| **Status** | Draft v0.2 |
+| **Status** | Draft v0.3 |
 | **Owner** | Kevin |
 | **Last updated** | 2026-09-23 |
 
 **Changelog**
+- v0.3 — Indoor subset restricted to test-only (attempts, make/miss).
 - v0.2 — Adopted the TrackID3x3 dataset (Indoor + Outdoor) as the primary data source. Added scoring
   rule sets (5v5 / 3x3); shot types are now reported as court *zones* plus *points*. Added FIBA 3x3 court
   standard, short-clip input support, component-level metrics, and dataset-related open questions.
@@ -150,7 +151,7 @@ analyze <video> --calib <calib.json> --rules {5v5,3x3} --out <dir> [--render]
 | Source | Role | Notes |
 |---|---|---|
 | **TrackID3x3 — Outdoor** ([repo](https://github.com/open-starlab/TrackID3x3), CC BY 4.0) | Primary dev + test | 12 videos, fixed sideline camera (iPhone 13, 4K), outdoor court, 3x3, colored bibs. Ships player boxes (all frames), 10 body keypoints incl. ankles (subset of frames), court keypoints. |
-| **TrackID3x3 — Indoor** (same repo and license) | Second-domain dev + test | 42 short clips (~7.5k frames total), fixed sideline camera (720p), university gym, half court. Same annotation types. |
+| **TrackID3x3 — Indoor** (same repo and license) | Test only: attempts and make/miss (no team metrics: each player wears a different color). ~20 fps, below IN-5; accepted as a stress test | 42 short clips (~7.5k frames total), fixed sideline camera (720p), university gym, half court. Same annotation types. |
 | TrackID3x3 — Drone | Not used | Camera moves; no court keypoints. Violates IN-2. |
 | Public ball datasets (e.g. Roboflow Universe, DeepSportradar) | Ball-detector training only | Licenses to be checked before use. |
 | Supplementary footage (tripod YouTube videos, self-recorded) | Generalization + FT + 5v5 checks | Needed because TrackID3x3 is 3x3 only, with few free throws and few venues. |

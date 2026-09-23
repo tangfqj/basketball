@@ -21,3 +21,9 @@ venv/
 
 # OS
 .DS_Store
+
+# Build / tooling
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+cache/
