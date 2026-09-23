@@ -1,0 +1,23 @@
+# Large binaries: keep out of git
+*.mp4
+*.mov
+*.MOV
+*.avi
+*.mkv
+*.pt
+*.pth
+*.onnx
+*.mlpackage/
+data/
+datasets/
+runs/
+outputs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
