@@ -38,7 +38,8 @@ def _cmd_analyze(a: argparse.Namespace) -> None:
 def _cmd_calibrate(a: argparse.Namespace) -> None:
     from .calibration.tool import run_calibration_tool
 
-    run_calibration_tool(a.video, a.out, a.court)
+    run_calibration_tool(a.video, a.out, a.court, init=a.init, t=a.time, cache_dir=a.cache_dir,
+                         port=a.port, open_browser=not a.no_browser)
 
 
 def _cmd_label(a: argparse.Namespace) -> None:
@@ -63,8 +64,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("calibrate", help="interactive calibration tool (Phase 1)")
     s.add_argument("video")
-    s.add_argument("--out", required=True)
+    s.add_argument("--out", help="default: calib/<video stem>.json")
     s.add_argument("--court", default="fiba_3x3")
+    s.add_argument("--init", help="start from 'trackid3x3-outdoor' or an existing calib.json")
+    s.add_argument("--time", type=float, default=1.0, help="reference frame time in seconds")
+    s.add_argument("--cache-dir", default="cache")
+    s.add_argument("--port", type=int, default=8766)
+    s.add_argument("--no-browser", action="store_true")
     s.set_defaults(func=_cmd_calibrate)
 
     s = sub.add_parser("label", help="label shot events in the browser (writes labels/<video>.csv)")

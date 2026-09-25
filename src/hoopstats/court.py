@@ -60,3 +60,38 @@ def is_beyond_arc(court: CourtSpec, x: float, y: float) -> bool:
 def is_on_court(court: CourtSpec, x: float, y: float, margin: float = 0.5) -> bool:
     """Used to filter out people standing off court (TM-4)."""
     return abs(x) <= court.width / 2 + margin and -margin <= y <= court.half_length + margin
+
+
+def court_landmarks(court: CourtSpec) -> dict[str, tuple[float, float]]:
+    """Named floor points that are usually easy to click (requirements CAL-2). x<0 = left when facing
+    the basket from the court."""
+    w, lane, c = court.width / 2, court.lane_width / 2, court.corner_x
+    return {
+        "baseline_left_corner": (-w, 0.0),
+        "corner3_left_baseline": (-c, 0.0),
+        "lane_left_baseline": (-lane, 0.0),
+        "lane_right_baseline": (lane, 0.0),
+        "corner3_right_baseline": (c, 0.0),
+        "baseline_right_corner": (w, 0.0),
+        "ft_line_left": (-lane, court.ft_line_y),
+        "ft_line_right": (lane, court.ft_line_y),
+        "arc_top": (0.0, court.hoop_y + court.arc_radius),
+        "top_left_corner": (-w, court.half_length),
+        "top_right_corner": (w, court.half_length),
+    }
+
+
+def court_lines(court: CourtSpec, n_arc: int = 120) -> list[list[tuple[float, float]]]:
+    """Polylines (court coordinates) of the painted lines used for visual verification (CAL-5)."""
+    w, lane, c = court.width / 2, court.lane_width / 2, court.corner_x
+    theta0 = math.asin((court.arc_break_y - court.hoop_y) / court.arc_radius)
+    arc = [(court.arc_radius * math.cos(t), court.hoop_y + court.arc_radius * math.sin(t))
+           for t in (theta0 + (math.pi - 2 * theta0) * i / (n_arc - 1) for i in range(n_arc))]
+    return [
+        [(-w, 0.0), (w, 0.0)],                                             # baseline
+        [(-w, 0.0), (-w, court.half_length)], [(w, 0.0), (w, court.half_length)],  # sidelines
+        [(-w, court.half_length), (w, court.half_length)],                 # top / half-court line
+        [(-c, 0.0), (-c, court.arc_break_y)], [(c, 0.0), (c, court.arc_break_y)],  # corner 3s
+        arc,
+        [(-lane, 0.0), (-lane, court.ft_line_y), (lane, court.ft_line_y), (lane, 0.0)],  # lane + FT line
+    ]

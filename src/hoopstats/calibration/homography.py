@@ -17,8 +17,9 @@ class Calibration:
     image_points: list[tuple[float, float]]     # pixel coordinates of landmarks
     court_points: list[tuple[float, float]]     # the same landmarks in court coordinates (metres)
     rim_center: tuple[float, float] | None = None   # pixels (CAL-1)
-    rim_edge: list[tuple[float, float]] = field(default_factory=list)  # pixels, >= 2 points on the rim
+    rim_edge: list[tuple[float, float]] = field(default_factory=list)  # pixels: left, right, front, back
     note: str = ""
+    landmark_names: list[str] = field(default_factory=list)  # optional, same order as image_points
 
     def __post_init__(self) -> None:
         if len(self.image_points) != len(self.court_points) or len(self.image_points) < 4:
@@ -44,7 +45,8 @@ class Calibration:
     # --- io ------------------------------------------------------------------------------
     def save(self, path: str | Path) -> None:
         d = {k: getattr(self, k) for k in
-             ("court_standard", "image_size", "image_points", "court_points", "rim_center", "rim_edge", "note")}
+             ("court_standard", "image_size", "image_points", "court_points", "rim_center", "rim_edge", "note",
+                  "landmark_names")}
         Path(path).write_text(json.dumps(d, indent=2))
 
     @classmethod
@@ -57,6 +59,17 @@ class Calibration:
             d["rim_center"] = tuple(d["rim_center"])
         d["rim_edge"] = [tuple(p) for p in d.get("rim_edge", [])]
         return cls(**d)
+
+    def scaled(self, width: int, height: int) -> Calibration:
+        """Same calibration for a resized copy of the video (e.g. the 1080p working copy)."""
+        sx, sy = width / self.image_size[0], height / self.image_size[1]
+
+        def sc(p):
+            return (p[0] * sx, p[1] * sy)
+
+        return Calibration(self.court_standard, (width, height), [sc(p) for p in self.image_points],
+                           list(self.court_points), sc(self.rim_center) if self.rim_center else None,
+                           [sc(p) for p in self.rim_edge], self.note, list(self.landmark_names))
 
 
 def _apply(H: np.ndarray, pts: np.ndarray) -> np.ndarray:
