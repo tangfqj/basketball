@@ -32,4 +32,3 @@ event_id,timestamp_s,frame,team,zone,made,note
 30,354.788,10633,A,beyond_arc,0,
 31,363.730,10901,B,inside_arc,1,
 32,368.535,11045,A,beyond_arc,0,
-33,373.440,11192,A,beyond_arc,0,
