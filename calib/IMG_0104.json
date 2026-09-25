@@ -1,0 +1,72 @@
+{
+  "court_standard": "fiba_3x3",
+  "image_size": [
+    3840,
+    2160
+  ],
+  "image_points": [
+    [
+      2698.841,
+      1172.363
+    ],
+    [
+      3749.903,
+      1726.613
+    ],
+    [
+      875.716,
+      1237.863
+    ],
+    [
+      108.424,
+      1970.321
+    ]
+  ],
+  "court_points": [
+    [
+      7.525,
+      0.0
+    ],
+    [
+      7.525,
+      11.05
+    ],
+    [
+      -7.525,
+      0.0
+    ],
+    [
+      -7.525,
+      11.05
+    ]
+  ],
+  "rim_center": [
+    1826.25,
+    841.75
+  ],
+  "rim_edge": [
+    [
+      1793.0,
+      841.75
+    ],
+    [
+      1859.5,
+      841.75
+    ],
+    [
+      1826.25,
+      846.5
+    ],
+    [
+      1826.25,
+      837.0
+    ]
+  ],
+  "note": "court from TrackID3x3 keypoints; rim pre-filled by Claude from a zoomed frame, to be verified",
+  "landmark_names": [
+    "trackid_rku_0",
+    "trackid_rku_1",
+    "trackid_rku_10",
+    "trackid_rku_11"
+  ]
+}

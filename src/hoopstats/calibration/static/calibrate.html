@@ -40,8 +40,9 @@
   <section>
     <h2>Zoom</h2>
     <canvas id="loupe" width="280" height="280"></canvas>
-    <small>Click a name below, then click its position in the image. ⌫ clears the selected point. Red lines show
-      the court model: they should sit on the painted lines. Rim: its left and right ends, and the points nearest to / farthest from the camera.</small>
+    <small>Select an item below, then click its position in the image (the zoom box helps). ⌫ clears the selected
+      point. <b>Red lines</b> = court model, <b>yellow oval</b> = rim: both should sit on what you see in the image.
+      See <code>doc/img_rim_guide.jpg</code> for where the 4 rim points are.</small>
   </section>
   <section id="list"></section>
 </aside>
@@ -61,18 +62,48 @@ async function start() {
   document.title = `calibrate · ${init.video}`;
 }
 
+const PLAIN = {
+  rim_left: 'Rim — left end of the orange ring',
+  rim_right: 'Rim — right end of the orange ring',
+  rim_front: 'Rim — near side (lower edge of the oval, closest to the camera)',
+  rim_back: 'Rim — far side (upper edge of the oval, next to the backboard)',
+  baseline_left_corner: 'Court — left corner of the end line under the basket',
+  baseline_right_corner: 'Court — right corner of the end line under the basket',
+  corner3_left_baseline: 'Court — where the big arc meets the end line (left)',
+  corner3_right_baseline: 'Court — where the big arc meets the end line (right)',
+  lane_left_baseline: 'Court — left corner of the painted box under the basket',
+  lane_right_baseline: 'Court — right corner of the painted box under the basket',
+  ft_line_left: 'Court — far-from-basket left corner of the painted box',
+  ft_line_right: 'Court — far-from-basket right corner of the painted box',
+  arc_top: 'Court — top (middle) of the big arc',
+  top_left_corner: 'Court — left corner of the court edge nearest the camera',
+  top_right_corner: 'Court — right corner of the court edge nearest the camera',
+};
+const label = n => PLAIN[n] || (n.startsWith('trackid_') ? 'Court corner (from the dataset)' : n.replaceAll('_', ' '));
+let showCourt = null;
+
 function renderList() {
   const el = document.getElementById('list'); el.innerHTML = '';
-  names.forEach(n => {
+  const courtSet = Object.keys(points).filter(k => !init.rim_points.includes(k) && points[k]).length;
+  if (showCourt === null) showCourt = courtSet < 4;
+  const addItem = n => {
     const d = document.createElement('div');
     d.className = 'item' + (n === sel ? ' sel' : '');
     const rim = init.rim_points.includes(n);
-    d.innerHTML = `<span class="${rim ? 'rim' : ''}">${n.replaceAll('_', ' ')}</span><span class="${points[n] ? 'set' : 'unset'}">${points[n] ? '●' : '○'}</span>`;
+    d.innerHTML = `<span class="${rim ? 'rim' : ''}">${label(n)}</span><span class="${points[n] ? 'set' : 'unset'}">${points[n] ? '●' : '○'}</span>`;
     d.onclick = () => { sel = n; renderList(); draw(); };
     el.appendChild(d);
-  });
-  const nc = Object.keys(points).filter(k => !init.rim_points.includes(k) && points[k]).length;
-  document.getElementById('nc').textContent = nc;
+  };
+  init.rim_points.forEach(addItem);
+  const hdr = document.createElement('div');
+  hdr.className = 'item';
+  hdr.innerHTML = courtSet >= 4
+    ? `<span class="set">Court: ${courtSet} points already set — nothing to do if the red lines sit on the painted lines</span><span>${showCourt ? '▾' : '▸'}</span>`
+    : `<span>Court: click at least 4 of these (${courtSet} set)</span><span>${showCourt ? '▾' : '▸'}</span>`;
+  hdr.onclick = () => { showCourt = !showCourt; renderList(); };
+  el.appendChild(hdr);
+  if (showCourt) names.filter(n => !init.rim_points.includes(n)).forEach(addItem);
+  document.getElementById('nc').textContent = courtSet;
   document.getElementById('nr').textContent = init.rim_points.filter(k => points[k]).length;
 }
 
