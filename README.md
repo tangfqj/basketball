@@ -42,6 +42,7 @@ src/hoopstats/
   video.py            ffprobe / ffmpeg helpers
   datasets/           TrackID3x3 loaders
   labeling/           browser-based shot labeling tool
+notebooks/            Colab notebook for training the ball detector
 configs/              default run configuration, dataset splits
 labels/               hand-labeled shot events (committed)
 tests/                unit tests
