@@ -46,7 +46,7 @@
   ],
   "rim_edge": [
     [
-      1793.0,
+      1793,
       841.75
     ],
     [
@@ -59,10 +59,10 @@
     ],
     [
       1826.25,
-      837.0
+      837
     ]
   ],
-  "note": "court from TrackID3x3 keypoints; rim pre-filled by Claude from a zoomed frame, to be verified",
+  "note": "hoopstats calibrate",
   "landmark_names": [
     "trackid_rku_0",
     "trackid_rku_1",
