@@ -31,12 +31,37 @@ def torso_crop(img: np.ndarray, box: tuple[float, float, float, float]) -> np.nd
     return img[max(0, y0):min(H, y1), max(0, x0):min(W, x1)]
 
 
-def color_feature(crop: np.ndarray) -> tuple[np.ndarray | None, float]:
-    """-> (L1-normalised, square-rooted H×S histogram of saturated pixels, fraction of saturated pixels)."""
+def estimate_court_hue(img: np.ndarray, calibration, court, n: int = 400, seed: int = 0) -> float | None:
+    """Dominant hue of the (saturated) court surface, sampled at random floor points inside the court.
+    Pixels of this hue are ignored in torso crops: court visible behind a player is not a bib colour."""
+    rng = np.random.default_rng(seed)
+    pts = np.c_[rng.uniform(-court.width / 2, court.width / 2, n), rng.uniform(0, court.half_length, n)]
+    px = calibration.court_to_image(pts).round().astype(int)
+    H, W = img.shape[:2]
+    px = px[(px[:, 0] >= 0) & (px[:, 0] < W) & (px[:, 1] >= 0) & (px[:, 1] < H)]
+    hsv = cv2.cvtColor(img[px[:, 1], px[:, 0]].reshape(-1, 1, 3), cv2.COLOR_BGR2HSV).reshape(-1, 3)
+    sat = hsv[hsv[:, 1] >= MIN_SAT]
+    if len(sat) < 0.3 * len(hsv):      # unsaturated court (e.g. wood, grey): nothing to exclude
+        return None
+    return float(np.median(sat[:, 0]))
+
+
+def _hue_dist(h: np.ndarray, ref: float) -> np.ndarray:
+    d = np.abs(h.astype(np.int16) - ref)
+    return np.minimum(d, 180 - d)
+
+
+def color_feature(crop: np.ndarray, background_hue: float | None = None,
+                  hue_tol: float = 12) -> tuple[np.ndarray | None, float]:
+    """-> (L1-normalised, square-rooted H×S histogram of saturated pixels, fraction of saturated pixels).
+    Pixels within `hue_tol` of `background_hue` (the court surface) are ignored."""
     if crop.size == 0:
         return None, 0.0
     hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
-    mask = ((hsv[..., 1] >= MIN_SAT) & (hsv[..., 2] >= MIN_VAL)).astype(np.uint8)
+    keep = (hsv[..., 1] >= MIN_SAT) & (hsv[..., 2] >= MIN_VAL)
+    if background_hue is not None:
+        keep &= _hue_dist(hsv[..., 0], background_hue) > hue_tol
+    mask = keep.astype(np.uint8)
     frac = float(mask.mean())
     if mask.sum() < 20:
         return None, frac

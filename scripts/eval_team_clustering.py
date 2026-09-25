@@ -21,7 +21,7 @@ import numpy as np
 
 from hoopstats.court import get_court, is_on_court
 from hoopstats.datasets.trackid3x3 import load_delimitation, load_mot, outdoor_calibration, team_membership
-from hoopstats.teams import color_feature, fit_team_model, torso_crop, vote
+from hoopstats.teams import color_feature, estimate_court_hue, fit_team_model, torso_crop, vote
 
 GT_ROOT = Path("data/trackid3x3_repo/ground_truth/Outdoor")
 FPS = 30000 / 1001
@@ -48,6 +48,7 @@ def main():
     ap.add_argument("--mode", choices=["gt", "det"], default="gt")
     ap.add_argument("--det-frames", type=int, default=60, help="keyframes used in det mode")
     ap.add_argument("--model", default="data/models/yolo11s.pt")
+    ap.add_argument("--no-court-mask", action="store_true", help="ablation: keep court-coloured pixels")
     a = ap.parse_args()
 
     d = Path("data/_teams") / a.video
@@ -64,6 +65,8 @@ def main():
         (x, y), = cal.image_to_court([(b[0] + b[2] / 2, b[1] + b[3])])
         return is_on_court(court, x, y, margin=0.3)
 
+    bg = None if a.no_court_mask else estimate_court_hue(cv2.imread(str(d / "k_0001.jpg")), cal, court)
+    print("court hue:", bg)
     samples = []   # (keyframe no, gt team or None, track id or None, feature, sat_frac)
     if a.mode == "gt":
         for n, t in index:
@@ -72,7 +75,7 @@ def main():
                 continue
             img = cv2.imread(str(d / f"k_{n + 1:04d}.jpg"))
             for tid, b in gt_boxes[f]:
-                feat, frac = color_feature(torso_crop(img, b))
+                feat, frac = color_feature(torso_crop(img, b), bg)
                 samples.append((n, team_of.get(tid), tid, feat, frac))
     else:
         from ultralytics import YOLO
@@ -89,7 +92,7 @@ def main():
                     continue
                 m = max(((iou(b, gb), tid) for tid, gb in gt_boxes.get(f, [])), default=(0, None))
                 tid = m[1] if m[0] >= 0.5 else None
-                feat, frac = color_feature(torso_crop(img, b))
+                feat, frac = color_feature(torso_crop(img, b), bg)
                 samples.append((n, team_of.get(tid) if tid else None, tid, feat, frac))
 
     model = fit_team_model([s[3] for s in samples if s[3] is not None and s[4] >= 0.15])
@@ -114,8 +117,9 @@ def main():
         others = [p for s, p in zip(samples, preds) if s[1] is None]
         res["non_player_on_court_detections"] = len(others)
         res["non_player_assigned_a_team"] = round(sum(p != "?" for p in others) / max(1, len(others)), 3)
+    res["court_mask"] = not a.no_court_mask
     print(json.dumps(res, indent=1))
-    out = Path("data/_teams") / f"{a.video}_{a.mode}.json"
+    out = Path("data/_teams") / f"{a.video}_{a.mode}{'_nomask' if a.no_court_mask else ''}.json"
     out.write_text(json.dumps(res, indent=1))
 
 
