@@ -36,6 +36,10 @@ uv run hoopstats label data/outdoor/IMG_0104.MOV
 | Shot while fouled | shot, labelled by physical outcome |
 | Shot after the whistle / during a dead ball (warm-up, practice shot) | **not** a shot; add nothing |
 
+**Which arc:** always the **large arc** (the 3-point line; worth 2 points in 3x3). The small semicircle
+right under the basket is the no-charge area and is irrelevant for zones. On the Outdoor court the large
+arc is the long white curve around the gray key; the free-throw line is the top edge of the gray key.
+
 **Zone:** decided by the shooter's feet at the last ground contact before release. A foot on the line
 is inside the arc. If feet are hidden, use your best judgement and write `feet hidden` in the note.
 
