@@ -11,8 +11,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Installed in Phase 2 (detector framework still to be decided, see doc/plan.md)
+# Phase 2+: detection (Ultralytics YOLO, AGPL-3.0 — decided 2026-09-25) and PyTorch
 ml = [
+    "ultralytics>=8.3",
     "torch>=2.3",
     "torchvision>=0.18",
 ]

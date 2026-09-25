@@ -1,0 +1,23 @@
+{
+  "model": "data/models/yolo11s.pt",
+  "frames": 528,
+  "shots": 33,
+  "ball_rate_full": {
+    "0.1": 0.54,
+    "0.25": 0.396,
+    "0.5": 0.205
+  },
+  "ball_rate_rim_crop": {
+    "0.1": 0.513,
+    "0.25": 0.337,
+    "0.5": 0.182
+  },
+  "ball_rate_rim_crop_late": {
+    "0.1": 0.579,
+    "0.25": 0.354,
+    "0.5": 0.178
+  },
+  "shots_with_ball_near_rim": 31,
+  "player_recall@0.25": 0.932,
+  "player_precision@0.25": 0.818
+}

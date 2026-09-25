@@ -49,11 +49,13 @@ def main():
     ap.add_argument("--mot", default="data/trackid3x3_repo/ground_truth/Outdoor/MOT/IMG_0104.txt")
     ap.add_argument("--out", required=True)
     ap.add_argument("--max-shots", type=int, default=0)
+    ap.add_argument("--budget-s", type=float, default=0, help="stop after this many seconds (resume later)")
     a = ap.parse_args()
 
     out = Path(a.out)
     (out / "samples").mkdir(parents=True, exist_ok=True)
-    shots = list(csv.DictReader(open(a.labels)))
+    with open(a.labels, newline="") as fh:
+        shots = list(csv.DictReader(fh))
     if a.max_shots:
         shots = shots[: a.max_shots]
     model = YOLO(a.model)
@@ -74,10 +76,18 @@ def main():
     for d in load_mot(a.mot):
         gt[d.frame].append((d.x, d.y, d.w, d.h))
 
-    rows, t0 = [], time.time()
+    (out / "shots").mkdir(exist_ok=True)
+    t0 = time.time()
     for si, s in enumerate(shots):
-        f0 = max(0, int(round((float(s["timestamp_s"]) - 0.3) * fps)))
-        f1 = int(round((float(s["timestamp_s"]) + 1.8) * fps))
+        shot_file = out / "shots" / f"shot{si:02d}.json"
+        if shot_file.exists():
+            continue
+        if a.budget_s and time.time() - t0 > a.budget_s:
+            print("time budget used; re-run to continue")
+            return
+        rows = []
+        f0 = max(0, round((float(s["timestamp_s"]) - 0.3) * fps))
+        f1 = round((float(s["timestamp_s"]) + 1.8) * fps)
         cap.set(cv2.CAP_PROP_POS_FRAMES, f0)
         for f in range(f0, f1 + 1):
             ok, img = cap.read()
@@ -120,18 +130,18 @@ def main():
                     cv2.rectangle(vis, (int(x) - 4, int(y) - 4), (int(x + w) + 4, int(y + h) + 4), (0, 255, 0), 4)
                     cv2.putText(vis, f"R{c:.2f}", (int(x), int(y + h) + 40), 0, 1.4, (0, 255, 0), 3)
                 cv2.imwrite(str(out / "samples" / f"shot{si:02d}_f{f}.jpg"), cv2.resize(vis, (1920, 1080)))
-        print(f"shot {si + 1}/{len(shots)} done, {len(rows)} frames, {time.time() - t0:.0f} s", flush=True)
+        shot_file.write_text(json.dumps(rows))
+        print(f"shot {si + 1}/{len(shots)} done, {time.time() - t0:.0f} s", flush=True)
 
-    (out / "detections.json").write_text(json.dumps(rows))
+    rows = [r for si in range(len(shots)) for r in json.loads((out / "shots" / f"shot{si:02d}.json").read_text())]
 
     def rate(key, thr, cond=lambda r: True):
         sel = [r for r in rows if cond(r)]
         return round(sum(any(c >= thr for c, _ in r[key]) for r in sel) / max(1, len(sel)), 3)
 
-    near_rim = lambda r: r["dt"] >= 0.6   # ball typically travelling to / at the rim  # noqa: E731
+    near_rim = lambda r: r["dt"] >= 0.6   # ball typically travelling to / at the rim
     summary = {
         "model": a.model, "frames": len(rows), "shots": len(shots),
-        "sec_per_frame": round((time.time() - t0) / max(1, len(rows)), 2),
         "ball_rate_full": {t: rate("ball_full", t) for t in (0.1, 0.25, 0.5)},
         "ball_rate_rim_crop": {t: rate("ball_rim", t) for t in (0.1, 0.25, 0.5)},
         "ball_rate_rim_crop_late": {t: rate("ball_rim", t, near_rim) for t in (0.1, 0.25, 0.5)},
