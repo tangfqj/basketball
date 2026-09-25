@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from .rules import points_for
 from .schema import ShotEvent, Team
@@ -42,10 +42,19 @@ def _ratio(num: int, den: int) -> float | None:
     return num / den if den else None
 
 
+SWAP = {Team.A: Team.B, Team.B: Team.A, Team.UNKNOWN: Team.UNKNOWN}
+
+
 def evaluate(gt: list[ShotEvent], pred: list[ShotEvent], rules: str, tol_s: float = 1.0) -> EvalResult:
+    """Team names are arbitrary on both sides (A/B from clustering vs. from labeling), so predicted
+    teams are relabelled with whichever of identity / A<->B swap agrees better with the ground truth."""
     m = match_events(gt, pred, tol_s)
     pairs = [(gt[i], pred[j]) for i, j in m]
     team_pairs = [(g, p) for g, p in pairs if g.team != Team.UNKNOWN]
+    if sum(g.team == SWAP[p.team] for g, p in team_pairs) > sum(g.team == p.team for g, p in team_pairs):
+        pred = [replace(p, team=SWAP[p.team]) for p in pred]
+        pairs = [(gt[i], pred[j]) for i, j in m]
+        team_pairs = [(g, p) for g, p in pairs if g.team != Team.UNKNOWN]
 
     def pts(evs: list[ShotEvent], team: Team | None) -> int:
         return sum(points_for(rules, e.zone, e.made) for e in evs if team is None or e.team == team)

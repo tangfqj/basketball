@@ -6,8 +6,9 @@ derived purely from the pixels. Demo project — see [`doc/requirements.md`](doc
 
 ## Status
 
-Milestone 1, Phase 0 (skeleton). Implemented: rule sets, court geometry and zone classification,
-calibration file + homography, event I/O and stats, evaluation, TrackID3x3 loaders, video probe/proxy.
+Milestone 1, Phase 0. Implemented: rule sets, court geometry and zone classification,
+calibration file + homography, event I/O and stats, evaluation, TrackID3x3 loaders, video probe/proxy,
+shot labeling tool.
 Detection, tracking, shot events and team clustering are stubs (`NotImplementedError`).
 
 ## Setup (macOS, Apple Silicon)
@@ -40,7 +41,9 @@ src/hoopstats/
   evaluation.py       event matching and metrics
   video.py            ffprobe / ffmpeg helpers
   datasets/           TrackID3x3 loaders
-configs/              default run configuration
+  labeling/           browser-based shot labeling tool
+configs/              default run configuration, dataset splits
+labels/               hand-labeled shot events (committed)
 tests/                unit tests
 doc/                  requirements, plan, dataset notes
 data/                 videos and datasets (git-ignored)
@@ -49,6 +52,7 @@ data/                 videos and datasets (git-ignored)
 ## Commands
 
 ```bash
+uv run hoopstats label data/outdoor/IMG_0104.MOV       # label shots in the browser, see doc/labeling-guide.md
 uv run hoopstats probe data/outdoor/*.MOV
 uv run hoopstats proxy data/outdoor/IMG_0104.MOV cache/IMG_0104/proxy_1080.mp4
 uv run hoopstats evaluate --gt labels/IMG_0104.csv --pred out/IMG_0104/events.csv --rules 3x3

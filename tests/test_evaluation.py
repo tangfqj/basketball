@@ -33,3 +33,11 @@ def test_csv_roundtrip_and_aggregate(tmp_path):
     assert s["total"]["points"] == 3
     assert s["teams"]["B"]["2PT"]["made"] == 1
     assert s["teams"]["B"]["FT"]["attempts"] == 1
+
+
+def test_team_names_are_arbitrary():
+    gt = [ev(10, "A"), ev(20, "B"), ev(30, "B")]
+    pred = [ev(10, "B"), ev(20, "A"), ev(30, "A")]
+    r = evaluate(gt, pred, "3x3")
+    assert r.team_accuracy == 1.0
+    assert r.points_error["A"] == 0

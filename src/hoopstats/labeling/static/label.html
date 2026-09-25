@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>hoopstats · shot labeling</title>
+<style>
+  :root { --bg:#16181d; --panel:#1f2229; --line:#2e323b; --fg:#e6e8ec; --mute:#8b919c;
+          --a:#4ea1ff; --b:#ffb547; --ok:#3ecf8e; --bad:#ff6b6b; --sel:#2b3a55; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.4 -apple-system, system-ui, sans-serif;
+         display:grid; grid-template-columns: 1fr 380px; height:100vh; }
+  main { display:flex; flex-direction:column; min-width:0; padding:12px; gap:8px; }
+  video { width:100%; flex:1; min-height:0; background:#000; border-radius:6px; }
+  #timeline { width:100%; height:28px; background:var(--panel); border-radius:4px; cursor:pointer; }
+  .bar { display:flex; gap:16px; align-items:center; flex-wrap:wrap; color:var(--mute); }
+  .bar b { color:var(--fg); font-variant-numeric: tabular-nums; }
+  aside { background:var(--panel); border-left:1px solid var(--line); display:flex; flex-direction:column; min-height:0; }
+  aside section { padding:12px; border-bottom:1px solid var(--line); }
+  h2 { margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--mute); }
+  input[type=text] { background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:4px; padding:4px 6px; width:100%; }
+  .teams { display:grid; grid-template-columns:auto 1fr; gap:6px 8px; align-items:center; }
+  #list { overflow:auto; flex:1; padding:0; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric: tabular-nums; }
+  td, th { padding:5px 8px; text-align:left; border-bottom:1px solid var(--line); }
+  th { color:var(--mute); font-weight:500; position:sticky; top:0; background:var(--panel); }
+  tr.sel { background:var(--sel); }
+  tr { cursor:pointer; }
+  .A { color:var(--a); font-weight:600; } .B { color:var(--b); font-weight:600; }
+  .made { color:var(--ok); } .miss { color:var(--bad); } .todo { color:var(--bad); font-weight:700; }
+  .keys { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; font-size:12px; color:var(--mute); }
+  kbd { background:var(--bg); border:1px solid var(--line); border-radius:3px; padding:0 5px; color:var(--fg); font-size:11px; }
+  #status.saved { color:var(--ok); } #status.err { color:var(--bad); }
+  .note { width:100%; background:transparent; border:none; color:var(--mute); }
+</style>
+</head>
+<body>
+<main>
+  <video id="v" src="/video" preload="auto" muted></video>
+  <canvas id="timeline"></canvas>
+  <div class="bar">
+    <span>time <b id="t">0.000</b> s</span>
+    <span>frame <b id="f">0</b></span>
+    <span>speed <b id="spd">1.0×</b></span>
+    <span>shots <b id="n">0</b> (incomplete <b id="inc">0</b>)</span>
+    <span id="status">loading…</span>
+  </div>
+</main>
+<aside>
+  <section>
+    <h2>Teams</h2>
+    <div class="teams">
+      <span class="A">A</span><input type="text" id="teamA" placeholder="e.g. green bibs">
+      <span class="B">B</span><input type="text" id="teamB" placeholder="e.g. purple bibs">
+    </div>
+  </section>
+  <section id="list">
+    <table><thead><tr><th>#</th><th>time</th><th>team</th><th>zone</th><th>result</th><th>note</th></tr></thead>
+    <tbody id="rows"></tbody></table>
+  </section>
+  <section>
+    <h2>Keys</h2>
+    <div class="keys">
+      <kbd>Space</kbd><span>play / pause</span>
+      <kbd>← →</kbd><span>± 1 frame &nbsp; <kbd>⇧</kbd> ± 1 s &nbsp; <kbd>J</kbd><kbd>L</kbd> ± 5 s</span>
+      <kbd>[ ]</kbd><span>slower / faster</span>
+      <kbd>S</kbd><span>new shot at current frame (use the <b>release</b> frame)</span>
+      <kbd>A B</kbd><span>team of selected shot</span>
+      <kbd>1 2 3</kbd><span>zone: inside arc / beyond arc / free throw</span>
+      <kbd>M X</kbd><span>made / missed</span>
+      <kbd>T</kbd><span>move selected shot to current frame</span>
+      <kbd>, .</kbd><span>previous / next shot (seeks there)</span>
+      <kbd>⌫</kbd><span>delete selected &nbsp; <kbd>Z</kbd> undo</span>
+    </div>
+  </section>
+</aside>
+<script>
+const v = document.getElementById('v');
+const tl = document.getElementById('timeline');
+const ZONES = {inside_arc: 'inside', beyond_arc: 'beyond', ft: 'FT'};
+const SPEEDS = [0.25, 0.5, 0.75, 1, 1.5, 2];
+let info = {fps: 30}, events = [], meta = {}, sel = -1, history = [], saveTimer = null;
+
+const frameOf = t => Math.round(t * info.fps);
+const complete = e => (e.team === 'A' || e.team === 'B') && (e.made === '0' || e.made === '1');
+
+async function load() {
+  info = await (await fetch('/api/info')).json();
+  const d = await (await fetch('/api/labels')).json();
+  events = d.events.map(e => ({...e, note: e.note || ''}));
+  meta = d.meta || {};
+  document.getElementById('teamA').value = meta.team_A || '';
+  document.getElementById('teamB').value = meta.team_B || '';
+  document.title = `label · ${info.video}`;
+  setStatus(`labels → ${info.labels}`);
+  render();
+}
+
+function snapshot() { history.push(JSON.stringify(events)); if (history.length > 200) history.shift(); }
+function sortEvents() {
+  const cur = events[sel];
+  events.sort((a, b) => a.timestamp_s - b.timestamp_s);
+  sel = events.indexOf(cur);
+}
+function changed() { sortEvents(); render(); scheduleSave(); }
+
+function scheduleSave() {
+  setStatus('saving…');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(save, 300);
+}
+async function save() {
+  meta.team_A = document.getElementById('teamA').value;
+  meta.team_B = document.getElementById('teamB').value;
+  try {
+    const r = await fetch('/api/labels', {method: 'POST', headers: {'Content-Type': 'application/json'},
+                                          body: JSON.stringify({events, meta})});
+    if (!r.ok) throw new Error(r.status);
+    setStatus('saved', 'saved');
+  } catch (err) { setStatus('SAVE FAILED: ' + err, 'err'); }
+}
+function setStatus(msg, cls = '') { const s = document.getElementById('status'); s.textContent = msg; s.className = cls; }
+
+function render() {
+  const tb = document.getElementById('rows');
+  tb.innerHTML = '';
+  events.forEach((e, i) => {
+    const tr = document.createElement('tr');
+    if (i === sel) tr.className = 'sel';
+    const team = e.team === 'A' || e.team === 'B' ? `<span class="${e.team}">${e.team}</span>` : '<span class="todo">?</span>';
+    const res = e.made === '1' ? '<span class="made">made</span>' : e.made === '0' ? '<span class="miss">miss</span>' : '<span class="todo">?</span>';
+    tr.innerHTML = `<td>${i + 1}</td><td>${(+e.timestamp_s).toFixed(2)}</td><td>${team}</td><td>${ZONES[e.zone]}</td><td>${res}</td>
+                    <td><input class="note" value="${(e.note || '').replace(/"/g, '&quot;')}"></td>`;
+    tr.onclick = ev => { if (ev.target.tagName !== 'INPUT') select(i, true); };
+    tr.querySelector('.note').onchange = ev => { snapshot(); e.note = ev.target.value; scheduleSave(); };
+    tb.appendChild(tr);
+  });
+  document.getElementById('n').textContent = events.length;
+  document.getElementById('inc').textContent = events.filter(e => !complete(e)).length;
+  if (sel >= 0) tb.children[sel]?.scrollIntoView({block: 'nearest'});
+  drawTimeline();
+}
+
+function drawTimeline() {
+  const w = tl.width = tl.clientWidth * devicePixelRatio, h = tl.height = tl.clientHeight * devicePixelRatio;
+  const g = tl.getContext('2d'), dur = v.duration || info.duration_s || 1;
+  g.clearRect(0, 0, w, h);
+  events.forEach((e, i) => {
+    const x = e.timestamp_s / dur * w;
+    g.fillStyle = e.team === 'A' ? '#4ea1ff' : e.team === 'B' ? '#ffb547' : '#ff6b6b';
+    g.fillRect(x - 1.5 * devicePixelRatio, i === sel ? 0 : h * 0.25, 3 * devicePixelRatio, i === sel ? h : h * 0.5);
+  });
+  g.fillStyle = '#fff';
+  g.fillRect(v.currentTime / dur * w - devicePixelRatio, 0, 2 * devicePixelRatio, h);
+}
+tl.onclick = ev => { const r = tl.getBoundingClientRect(); v.currentTime = (ev.clientX - r.left) / r.width * v.duration; };
+
+function select(i, seek) {
+  sel = i;
+  if (seek && i >= 0) { v.pause(); v.currentTime = +events[i].timestamp_s; }
+  render();
+}
+function step(frames) { v.pause(); v.currentTime = Math.max(0, Math.min(v.duration, v.currentTime + frames / info.fps)); }
+function setField(k, val) { if (sel < 0) return; snapshot(); events[sel][k] = val; changed(); }
+
+function tick() {
+  document.getElementById('t').textContent = v.currentTime.toFixed(3);
+  document.getElementById('f').textContent = frameOf(v.currentTime);
+  drawTimeline();
+}
+v.addEventListener('timeupdate', tick);
+v.addEventListener('seeked', tick);
+v.addEventListener('loadedmetadata', drawTimeline);
+(function loop() { if (!v.paused) tick(); requestAnimationFrame(loop); })();
+window.addEventListener('resize', drawTimeline);
+['teamA', 'teamB'].forEach(id => document.getElementById(id).onchange = scheduleSave);
+
+document.addEventListener('keydown', ev => {
+  if (ev.target.tagName === 'INPUT') { if (ev.key === 'Escape' || ev.key === 'Enter') ev.target.blur(); return; }
+  const k = ev.key, K = k.length === 1 ? k.toLowerCase() : k;
+  let handled = true;
+  switch (K) {
+    case ' ': v.paused ? v.play() : v.pause(); break;
+    case 'ArrowLeft': ev.shiftKey ? step(-info.fps) : step(-1); break;
+    case 'ArrowRight': ev.shiftKey ? step(info.fps) : step(1); break;
+    case 'j': step(-5 * info.fps); break;
+    case 'l': step(5 * info.fps); break;
+    case '[': case ']': {
+      const i = SPEEDS.indexOf(v.playbackRate), j = Math.max(0, Math.min(SPEEDS.length - 1, (i < 0 ? 3 : i) + (K === ']' ? 1 : -1)));
+      v.playbackRate = SPEEDS[j]; document.getElementById('spd').textContent = SPEEDS[j] + '×'; break;
+    }
+    case 's': {
+      v.pause(); snapshot();
+      const t = frameOf(v.currentTime) / info.fps;
+      const e = {event_id: 0, timestamp_s: t.toFixed(3), frame: frameOf(v.currentTime), team: '', zone: 'inside_arc', made: '', note: ''};
+      events.push(e); sel = events.length - 1; changed(); break;
+    }
+    case 'a': setField('team', 'A'); break;
+    case 'b': setField('team', 'B'); break;
+    case '1': setField('zone', 'inside_arc'); break;
+    case '2': setField('zone', 'beyond_arc'); break;
+    case '3': setField('zone', 'ft'); break;
+    case 'm': setField('made', '1'); break;
+    case 'x': setField('made', '0'); break;
+    case 't': if (sel >= 0) { snapshot(); events[sel].timestamp_s = (frameOf(v.currentTime) / info.fps).toFixed(3);
+                              events[sel].frame = frameOf(v.currentTime); changed(); } break;
+    case ',': if (events.length) select(sel <= 0 ? 0 : sel - 1, true); break;
+    case '.': if (events.length) select(Math.min(events.length - 1, sel + 1), true); break;
+    case 'Enter': if (sel >= 0) select(sel, true); break;
+    case 'Backspace': case 'Delete': if (sel >= 0) { snapshot(); events.splice(sel, 1); sel = Math.min(sel, events.length - 1); changed(); } break;
+    case 'z': if (history.length) { events = JSON.parse(history.pop()); sel = Math.min(sel, events.length - 1); changed(); } break;
+    case 'Escape': sel = -1; render(); break;
+    default: handled = false;
+  }
+  if (handled) ev.preventDefault();
+});
+load();
+</script>
+</body>
+</html>

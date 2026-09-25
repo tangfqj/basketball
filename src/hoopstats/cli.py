@@ -41,6 +41,12 @@ def _cmd_calibrate(a: argparse.Namespace) -> None:
     run_calibration_tool(a.video, a.out, a.court)
 
 
+def _cmd_label(a: argparse.Namespace) -> None:
+    from .labeling import run_label_server
+
+    run_label_server(a.video, a.out, cache_dir=a.cache_dir, port=a.port, open_browser=not a.no_browser)
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="hoopstats", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -60,6 +66,14 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--out", required=True)
     s.add_argument("--court", default="fiba_3x3")
     s.set_defaults(func=_cmd_calibrate)
+
+    s = sub.add_parser("label", help="label shot events in the browser (writes labels/<video>.csv)")
+    s.add_argument("video")
+    s.add_argument("--out", help="label CSV path (default: labels/<video stem>.csv)")
+    s.add_argument("--cache-dir", default="cache")
+    s.add_argument("--port", type=int, default=8765)
+    s.add_argument("--no-browser", action="store_true")
+    s.set_defaults(func=_cmd_label)
 
     s = sub.add_parser("analyze", help="run the full pipeline on a video")
     s.add_argument("video")

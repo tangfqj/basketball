@@ -1,0 +1,12 @@
+# Dataset splits (requirements EV-5, plan step 0.4). Split per video; fixed before any tuning.
+# Test videos are labeled and evaluated only in Phase 6.2 — do not use them for development.
+
+trackid3x3_outdoor:
+  dir: data/outdoor
+  dev:  [IMG_0104, IMG_0105, IMG_0106, IMG_0107, IMG_0108, IMG_0109, IMG_0110]
+  test: [IMG_0111, IMG_0112, IMG_0113, IMG_0114, IMG_0115]
+
+trackid3x3_indoor:
+  dir: data/indoor
+  dev:  []
+  test: all   # attempts and make/miss only; no team metrics (requirements §7.1)
