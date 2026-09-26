@@ -25,7 +25,7 @@ from .events.make_model import MakeModel
 from .events.shooter import shooter_info
 from .outputs import apply_rules, write_events_csv, write_stats_json
 from .schema import ShotEvent, Team, Zone
-from .teams.assign import fit_video_team_model, shot_team
+from .teams.assign import fit_video_team_model, shot_team, track_teams
 from .tracking import track_ball
 from .video import probe
 
@@ -102,6 +102,7 @@ def analyze(cfg: RunConfig) -> list[ShotEvent]:
     # 4. shooter, zone, team
     print(f"[4/5] shooter, zone and team for {len(shots)} shots ...")
     team_model, bg = fit_video_team_model(cfg.video, persons, cal, court, cache)
+    teams_by_track, _ = track_teams(cfg.video, persons, cal, court, cache)   # fallback: keyframe vote per track
     cap = cv2.VideoCapture(cfg.video)
     events = []
     for i, s in enumerate(shots):
@@ -109,6 +110,8 @@ def analyze(cfg: RunConfig) -> list[ShotEvent]:
         team = Team.UNKNOWN
         if si.track_id is not None:
             t, _ = shot_team(cap, persons, si.track_id, s.release_frame, team_model, bg)
+            if t == "?":                       # no clear majority in the shooter's own views
+                t = teams_by_track.get(si.track_id, "?")
             team = Team(t)
         zone = Zone(si.zone) if si.zone else Zone.INSIDE_ARC
         release = s.release_frame + round(RELEASE_SHIFT_S * fps)
