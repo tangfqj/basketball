@@ -8,8 +8,7 @@ derived purely from the pixels. Demo project — see [`doc/requirements.md`](doc
 
 **Milestone 1 complete** (end-to-end pipeline) — results and limitations in
 [`doc/milestone1-report.md`](doc/milestone1-report.md). On 5 labelled videos: shots found 100%, precision
-97.8%, make/miss 97.1% (97.4% on the untouched IMG_0108), zone 97.7%, team 89.7%. The final held-out test
-(IMG_0111–0115) is still open.
+97.8%, make/miss 97.1% (97.4% on the untouched IMG_0108), zone 97.7%, team 89.7%.
 
 ## Setup (macOS, Apple Silicon)
 
