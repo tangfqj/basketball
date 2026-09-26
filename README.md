@@ -6,7 +6,7 @@ derived purely from the pixels. Demo project — see [`doc/requirements.md`](doc
 
 ## Status
 
-Milestone 1, Phase 0. Implemented: rule sets, court geometry and zone classification,
+Milestone 1, Phase 6 (end-to-end pipeline working; speed and final test pending). Implemented: rule sets, court geometry and zone classification,
 calibration file + homography, event I/O and stats, evaluation, TrackID3x3 loaders, video probe/proxy,
 shot labeling tool.
 Detection, tracking, shot events and team clustering are stubs (`NotImplementedError`).
@@ -55,6 +55,12 @@ data/                 videos and datasets (git-ignored)
 ## Commands
 
 ```bash
+# the whole pipeline (detection is cached; first run on a new video takes ~45 min on an M2)
+uv run hoopstats analyze data/outdoor/IMG_0104.MOV --out out/IMG_0104              # events.csv, stats.json, run_log.json
+uv run hoopstats analyze data/outdoor/IMG_0104.MOV --out out/IMG_0104 --render     # + annotated.mp4 (whole video)
+uv run hoopstats analyze data/outdoor/IMG_0104.MOV --out out/IMG_0104 --render-range 60:120   # annotated clip
+uv run hoopstats evaluate --gt labels/IMG_0104.csv --pred out/IMG_0104/events.csv --rules 3x3
+
 uv run hoopstats label data/outdoor/IMG_0104.MOV       # label shots in the browser, see doc/labeling-guide.md
 uv run hoopstats calibrate data/outdoor/IMG_0104.MOV --init trackid3x3-outdoor   # court + rim
 uv run hoopstats ball-review                           # review ball boxes, see doc/ball-labeling-guide.md

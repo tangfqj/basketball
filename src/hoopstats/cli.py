@@ -29,10 +29,14 @@ def _cmd_evaluate(a: argparse.Namespace) -> None:
 
 
 def _cmd_analyze(a: argparse.Namespace) -> None:
+    from pathlib import Path
+
     from .pipeline import RunConfig, analyze
 
-    analyze(RunConfig(video=a.video, calib=a.calib, out_dir=a.out, rules=a.rules,
-                      cache_dir=a.cache_dir, render=a.render))
+    rng = tuple(float(v) for v in a.render_range.split(":")) if a.render_range else None
+    analyze(RunConfig(video=a.video, calib=a.calib or f"calib/{Path(a.video).stem}.json", out_dir=a.out,
+                      rules=a.rules, cache_dir=a.cache_dir, ball_model=a.ball_model, make_model=a.make_model,
+                      render=a.render or rng is not None, render_range=rng))
 
 
 def _cmd_calibrate(a: argparse.Namespace) -> None:
@@ -153,8 +157,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("analyze", help="run the full pipeline on a video")
     s.add_argument("video")
-    s.add_argument("--calib", required=True)
+    s.add_argument("--calib", help="default: calib/<video stem>.json")
     s.add_argument("--out", required=True)
+    s.add_argument("--ball-model", default="data/models/ball_v1.pt")
+    s.add_argument("--make-model", default="models/make_model.json")
+    s.add_argument("--render-range", help="render only this part, in seconds, e.g. 60:120 (implies --render)")
     s.add_argument("--rules", choices=["5v5", "3x3"], default="3x3")
     s.add_argument("--cache-dir", default="cache")
     s.add_argument("--render", action="store_true")

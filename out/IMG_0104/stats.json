@@ -1,0 +1,97 @@
+{
+  "rules": "3x3",
+  "teams": {
+    "?": {
+      "1PT": {
+        "attempts": 0,
+        "made": 0,
+        "pct": null
+      },
+      "2PT": {
+        "attempts": 1,
+        "made": 0,
+        "pct": 0.0
+      },
+      "FT": {
+        "attempts": 0,
+        "made": 0,
+        "pct": null
+      },
+      "overall": {
+        "attempts": 1,
+        "made": 0,
+        "pct": 0.0
+      },
+      "points": 0
+    },
+    "A": {
+      "1PT": {
+        "attempts": 4,
+        "made": 2,
+        "pct": 0.5
+      },
+      "2PT": {
+        "attempts": 15,
+        "made": 3,
+        "pct": 0.2
+      },
+      "FT": {
+        "attempts": 2,
+        "made": 0,
+        "pct": 0.0
+      },
+      "overall": {
+        "attempts": 21,
+        "made": 5,
+        "pct": 0.238
+      },
+      "points": 8
+    },
+    "B": {
+      "1PT": {
+        "attempts": 7,
+        "made": 4,
+        "pct": 0.571
+      },
+      "2PT": {
+        "attempts": 5,
+        "made": 2,
+        "pct": 0.4
+      },
+      "FT": {
+        "attempts": 0,
+        "made": 0,
+        "pct": null
+      },
+      "overall": {
+        "attempts": 12,
+        "made": 6,
+        "pct": 0.5
+      },
+      "points": 8
+    }
+  },
+  "total": {
+    "1PT": {
+      "attempts": 11,
+      "made": 6,
+      "pct": 0.545
+    },
+    "2PT": {
+      "attempts": 21,
+      "made": 5,
+      "pct": 0.238
+    },
+    "FT": {
+      "attempts": 2,
+      "made": 0,
+      "pct": 0.0
+    },
+    "overall": {
+      "attempts": 34,
+      "made": 11,
+      "pct": 0.324
+    },
+    "points": 16
+  }
+}
