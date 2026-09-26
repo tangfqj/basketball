@@ -21,7 +21,8 @@
 | 2.2 Ball detector | `ball_v1`: val precision 0.977 / recall 0.971 (target ≥ 0.90 met) |
 | 2.3 Ball tracking | IMG_0104 full video: recall 97% (val 97%), 33/33 shot flights reach the rim — exit criterion met |
 | 3 Shots, make/miss | **Done.** Attempts 141/141 on 0105–0108; make/miss 95.6% leave-one-video-out, **97.4% on untouched IMG_0108** |
-| 5 Teams | Colour clustering done (96–99% per detection, 12/12 tracks); pipeline wiring waits for player tracks |
+| 4 Zone | Shooter + floor point at release + FT context: 170/174 (97.7%, dev) |
+| 5 Teams | Per shot via the shooter's un-occluded views: 156/174 (89.7%, dev) — just below target; IMG_0107 weakest |
 
 ## Guiding principles
 
