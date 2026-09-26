@@ -15,6 +15,22 @@ uv run hoopstats label data/outdoor/IMG_0104.MOV
 - Stop with Ctrl+C in the terminal. Re-running the command continues where you left off.
 - Commit the label files to git when a video is done.
 
+## Review mode (pre-filled shots)
+
+When the video has already been processed (`hoopstats detect` + `track-ball`), let the detector propose
+the shots first:
+
+```bash
+uv run python scripts/propose_shots.py IMG_0105
+uv run hoopstats label data/outdoor/IMG_0105.MOV
+```
+
+Proposed shots appear in *yellow italics* (note "auto") and count as incomplete. For each one: check the
+release moment (adjust with `T` if needed), set team (`A`/`B`) and zone (`1`/`2`/`3`), check made/missed
+(`M`/`X`), then press **C** to confirm — the tool jumps to the next proposal. Delete false detections with
+⌫. **Watch the whole video anyway** and add shots the detector missed with `S` — otherwise the evaluation
+would only ever see shots the detector already finds.
+
 ## Workflow per video
 
 1. Write down the two team colors (A and B) in the sidebar. Keep A/B fixed for the whole video.

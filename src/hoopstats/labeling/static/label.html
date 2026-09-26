@@ -24,6 +24,7 @@
   td, th { padding:5px 8px; text-align:left; border-bottom:1px solid var(--line); }
   th { color:var(--mute); font-weight:500; position:sticky; top:0; background:var(--panel); }
   tr.sel { background:var(--sel); }
+  tr.auto td { font-style:italic; color:#ffd84d; }
   tr { cursor:pointer; }
   .A { color:var(--a); font-weight:600; } .B { color:var(--b); font-weight:600; }
   .made { color:var(--ok); } .miss { color:var(--bad); } .todo { color:var(--bad); font-weight:700; }
@@ -68,6 +69,7 @@
       <kbd>1 2 3</kbd><span>zone: inside / beyond the <b>large</b> (3-pt) arc / free throw</span>
       <kbd>M X</kbd><span>made / missed</span>
       <kbd>T</kbd><span>move selected shot to current frame</span>
+      <kbd>C</kbd><span>confirm a proposed (<i style="color:#ffd84d">yellow, auto</i>) shot after checking it, then go to the next</span>
       <kbd>, .</kbd><span>previous / next shot (seeks there)</span>
       <kbd>⌫</kbd><span>delete selected &nbsp; <kbd>Z</kbd> undo</span>
     </div>
@@ -81,7 +83,8 @@ const SPEEDS = [0.25, 0.5, 0.75, 1, 1.5, 2];
 let info = {fps: 30}, events = [], meta = {}, sel = -1, history = [], saveTimer = null;
 
 const frameOf = t => Math.round(t * info.fps);
-const complete = e => (e.team === 'A' || e.team === 'B') && (e.made === '0' || e.made === '1');
+const isAuto = e => (e.note || '').startsWith('auto');
+const complete = e => (e.team === 'A' || e.team === 'B') && (e.made === '0' || e.made === '1') && !isAuto(e);
 
 async function load() {
   info = await (await fetch('/api/info')).json();
@@ -125,7 +128,7 @@ function render() {
   tb.innerHTML = '';
   events.forEach((e, i) => {
     const tr = document.createElement('tr');
-    if (i === sel) tr.className = 'sel';
+    tr.className = (i === sel ? 'sel ' : '') + (isAuto(e) ? 'auto' : '');
     const team = e.team === 'A' || e.team === 'B' ? `<span class="${e.team}">${e.team}</span>` : '<span class="todo">?</span>';
     const res = e.made === '1' ? '<span class="made">made</span>' : e.made === '0' ? '<span class="miss">miss</span>' : '<span class="todo">?</span>';
     tr.innerHTML = `<td>${i + 1}</td><td>${(+e.timestamp_s).toFixed(2)}</td><td>${team}</td><td>${ZONES[e.zone]}</td><td>${res}</td>
@@ -199,6 +202,8 @@ document.addEventListener('keydown', ev => {
     case '1': setField('zone', 'inside_arc'); break;
     case '2': setField('zone', 'beyond_arc'); break;
     case '3': setField('zone', 'ft'); break;
+    case 'c': if (sel >= 0 && isAuto(events[sel])) { snapshot(); events[sel].note = events[sel].note.replace(/^auto:?\s*/, '');
+                changed(); const nx = events.findIndex(isAuto); if (nx >= 0) select(nx, true); } break;
     case 'm': setField('made', '1'); break;
     case 'x': setField('made', '0'); break;
     case 't': if (sel >= 0) { snapshot(); events[sel].timestamp_s = (frameOf(v.currentTime) / info.fps).toFixed(3);
