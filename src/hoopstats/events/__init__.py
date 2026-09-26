@@ -1,9 +1,5 @@
-"""Shot events: attempts, release time, make/miss (Phase 3), zone (Phase 4)."""
+"""Shot events (Phases 3-4): attempts, release time, make/miss; shooter and zone live in events/shooter.py."""
 
 from .shots import ShotCandidate, ShotParams, detect_shots
 
-__all__ = ["ShotCandidate", "ShotParams", "classify_zone", "detect_shots"]
-
-
-def classify_zone(shot, player_detections, calibration, court):
-    raise NotImplementedError("Phase 4: zone classification")
+__all__ = ["ShotCandidate", "ShotParams", "detect_shots"]

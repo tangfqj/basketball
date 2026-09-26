@@ -44,7 +44,7 @@ src/hoopstats/
   labeling/           browser tools: shot labeling, ball-box review
   training/           training-data export (ball dataset)
 notebooks/            Colab: ball-detector training; whole pipeline on a cloud GPU
-configs/              default run configuration, dataset splits
+configs/              dataset splits (dev / test)
 labels/               hand-labeled shot events and ball boxes (committed)
 models/               make/miss model (committed; detector weights live in data/models/)
 calib/                per-video calibration (committed)

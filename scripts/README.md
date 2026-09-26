@@ -13,7 +13,6 @@ One-off and evaluation scripts. Library code lives in `src/hoopstats/`; run with
 | `select_ball_frames.py` | Pick and extract frames for ball-box labelling | ball labelling |
 | `propose_ball_boxes.py` | Pre-annotate ball boxes with the pretrained detector | ball labelling |
 | `eval_ball_tracking.py` | Tracking recall / shot coverage vs. reviewed ball boxes | Phase 2 |
-| `render_ball_track.py` | Debug video of the ball track for a frame range | Phase 2 |
 | `propose_shots.py` | Pre-fill shot labels from the detector (review mode; `--blank-made` for test videos) | shot labelling |
 | `eval_shots.py` | Shot attempts and make/miss vs. labels, with an error list | Phase 3 |
 | `shot_features.py` | Dump trajectory features of labelled shots | Phase 3 |
