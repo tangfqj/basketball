@@ -31,11 +31,11 @@ src/hoopstats/
   schema.py           ShotEvent, Zone, Team
   rules.py            5v5 / 3x3 points
   court.py            court standards, zone classification (court coordinates in metres)
-  calibration/        calib.json, image <-> court homography, calibration tool (TODO)
-  detection/          player and ball detectors (TODO)
-  tracking/           ball tracking (TODO)
-  events/             shot detection, make/miss, zones (TODO)
-  teams/              team colour clustering (TODO)
+  calibration/        calib.json, image <-> court homography, browser calibration tool
+  detection/          ball + player detection over a video (cached, batched, optional parallel workers)
+  tracking/           ball tracking (one ball per frame, gap filling)
+  events/             shot detection, make/miss model, shooter, zone / free throw
+  teams/              bib-colour team clustering, team per shot
   outputs.py          events.csv, stats.json
   evaluation.py       event matching and metrics
   video.py            ffprobe / ffmpeg helpers
@@ -62,7 +62,7 @@ uv run hoopstats evaluate --gt labels/IMG_0104.csv --pred out/IMG_0104/events.cs
 uv run python scripts/eval_outputs.py IMG_0104 IMG_0105 IMG_0106 IMG_0107 IMG_0108 --out-dir out   # accuracy table
 uv run python scripts/make_colab_bundle.py      # cloud run: see notebooks/run_pipeline_colab.ipynb
 
-uv run hoopstats label data/outdoor/IMG_0104.MOV       # label shots in the browser, see doc/labeling-guide.md
+uv run hoopstats label data/outdoor/IMG_0104.MOV       # label shots in the browser
 uv run hoopstats calibrate data/outdoor/IMG_0104.MOV --init trackid3x3-outdoor   # court + rim
 uv run hoopstats ball-review                           # review ball boxes, see doc/ball-labeling-guide.md
 uv run hoopstats ball-dataset                          # -> data/ball_dataset.zip for Colab training
