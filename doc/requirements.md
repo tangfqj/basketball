@@ -2,11 +2,12 @@
 
 | | |
 |---|---|
-| **Status** | Draft v0.3 |
+| **Status** | Draft v0.4 |
 | **Owner** | Kevin |
 | **Last updated** | 2026-09-23 |
 
 **Changelog**
+- v0.4 — Inference may run in the cloud (NF-1–NF-3); speed target applies to the machine used.
 - v0.3 — Indoor subset restricted to test-only (attempts, make/miss).
 - v0.2 — Adopted the TrackID3x3 dataset (Indoor + Outdoor) as the primary data source. Added scoring
   rule sets (5v5 / 3x3); shot types are now reported as court *zones* plus *points*. Added FIBA 3x3 court
@@ -210,9 +211,9 @@ matching is the primary evaluation.
 
 | ID | Requirement |
 |---|---|
-| NF-1 | Runs offline on a MacBook with Apple Silicon (inference via PyTorch MPS or Core ML). |
-| NF-2 | Processing time ≤ 3× video duration on the target Mac (e.g. a 10-minute video in ≤ 30 minutes), measured at ≤ 1080p processing resolution. |
-| NF-3 | Model training may run locally or on a cloud GPU (e.g. Google Colab); inference must not require the cloud. |
+| NF-1 | The pipeline may run on a cloud GPU (e.g. Google Colab) or locally on the Mac (Apple Silicon, PyTorch MPS); where it runs does not matter (decided 2026-09-27). |
+| NF-2 | Processing time ≤ 3× video duration on the machine used (e.g. a 10-minute video in ≤ 30 minutes). Measured: M2 (MPS) ~4.6 fps ≈ 6.5× real time; cloud GPU to be measured. |
+| NF-3 | Training and inference may both use cloud GPUs; the code runs unchanged on CUDA, MPS and CPU. |
 | NF-4 | Results are deterministic for the same input, calibration, rule set, and model version. |
 | NF-5 | Large binary files (videos, model weights, datasets) are kept out of git. |
 

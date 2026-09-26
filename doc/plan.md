@@ -23,7 +23,7 @@
 | 3 Shots, make/miss | **Done.** Attempts 141/141 on 0105–0108; make/miss 95.6% leave-one-video-out, **97.4% on untouched IMG_0108** |
 | 4 Zone | Shooter + floor point at release + FT context: 170/174 (97.7%, dev) |
 | 5 Teams | Per shot via the shooter's un-occluded views: 156/174 (89.7%, dev) — just below target; IMG_0107 weakest |
-| 6 Pipeline | `hoopstats analyze` + annotated video done; IMG_0104 end to end: recall 100%, precision 97%, make/miss 100%, zone 100%, team 94%, total points exact. Speed (4.2 fps) and final test pending |
+| 6 Pipeline | `hoopstats analyze` + annotated video done; IMG_0104 end to end: recall 100%, precision 97%, make/miss 100%, zone 100%, team 94%, total points exact. Speed: M2 4.6 fps (models ~90% of the time) → pipeline moved to cloud GPU (`notebooks/run_pipeline_colab.ipynb`), timing pending; final test pending |
 
 ## Guiding principles
 
