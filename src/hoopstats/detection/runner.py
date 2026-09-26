@@ -76,6 +76,7 @@ def run_detection(video: str, calib: str, ball_model: str, person_model: str = "
     prev = [np.load(p)["persons"] for p in (cache / "detections").glob("chunk_*.npz")]
     id_offset = int(max((a[:, 1].max() for a in prev if len(a)), default=0)) + 1 if prev else 0
     t0, done = time.time(), 0
+    timing = {"decode": 0.0, "resize": 0.0, "ball_half": 0.0, "ball_rim": 0.0, "players": 0.0}
     print(f"{video}: frames {start}-{end} on {device}; ball model {ball_model}")
 
     for c0 in range(start - start % chunk, end, chunk):
@@ -86,24 +87,35 @@ def run_detection(video: str, calib: str, ball_model: str, person_model: str = "
         cap.set(cv2.CAP_PROP_POS_FRAMES, c_start)
         balls, persons = [], []
         for f in range(c_start, c_end):
+            tt = time.perf_counter()
             ok, img = cap.read()
             if not ok:
                 break
+            timing["decode"] += time.perf_counter() - tt
+            tt = time.perf_counter()
             half = cv2.resize(img, (W // 2, H // 2), interpolation=cv2.INTER_AREA)
             rim = img[ry0:ry0 + 960, rx0:rx0 + 1280]
+            timing["resize"] += time.perf_counter() - tt
             for src, im, s, dx, dy, sz in ((0, half, 2.0, 0, 0, 1920), (1, rim, 1.0, rx0, ry0, 1280)):
+                tt = time.perf_counter()
                 r = bm.predict(im, imgsz=sz, conf=ball_conf, classes=[ball_cls], device=device, verbose=False)[0]
+                timing["ball_half" if src == 0 else "ball_rim"] += time.perf_counter() - tt
                 for (x0, y0, x1, y1), c in zip(r.boxes.xyxy.tolist(), r.boxes.conf.tolist()):
                     balls.append((f, x0 * s + dx, y0 * s + dy, (x1 - x0) * s, (y1 - y0) * s, c, src))
             if (f - c_start) % person_every == 0:
+                tt = time.perf_counter()
                 r = pm.track(half, imgsz=1920, conf=0.25, classes=[person_cls], device=device,
                              persist=True, tracker="bytetrack.yaml", verbose=False)[0]
                 ids = r.boxes.id.tolist() if r.boxes.id is not None else [-1] * len(r.boxes)
                 for (x0, y0, x1, y1), c, tid in zip(r.boxes.xyxy.tolist(), r.boxes.conf.tolist(), ids):
                     persons.append((f, tid + id_offset if tid >= 0 else -1, x0 * 2, y0 * 2, (x1 - x0) * 2, (y1 - y0) * 2, c))
+                timing["players"] += time.perf_counter() - tt
             done += 1
         np.savez_compressed(out, ball=np.array(balls, np.float32).reshape(-1, 7),
                             persons=np.array(persons, np.float32).reshape(-1, 7))
         el = time.time() - t0
         print(f"  frames {c_start}-{c_end} done  ({done / el:.1f} fps, {el / 60:.1f} min)", flush=True)
+        tot = sum(timing.values()) or 1
+        print("  time per frame: " + ", ".join(f"{k} {1000 * v / max(1, done):.0f} ms ({100 * v / tot:.0f}%)"
+                                             for k, v in timing.items()), flush=True)
     return cache
