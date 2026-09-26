@@ -14,6 +14,7 @@ dependencies = [
 # Phase 2+: detection (Ultralytics YOLO, AGPL-3.0 — decided 2026-09-25) and PyTorch
 ml = [
     "ultralytics>=8.3",
+    "lap>=0.5.12",           # ByteTrack (player tracking)
     "torch>=2.3",
     "torchvision>=0.18",
 ]

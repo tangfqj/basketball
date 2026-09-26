@@ -62,6 +62,33 @@ def _cmd_ball_dataset(a: argparse.Namespace) -> None:
     print(json.dumps(build_ball_dataset(a.out, a.labels_dir), indent=1))
 
 
+def _cmd_detect(a: argparse.Namespace) -> None:
+    from pathlib import Path
+
+    from .detection.runner import run_detection
+
+    calib = a.calib or f"calib/{Path(a.video).stem}.json"
+    run_detection(a.video, calib, a.ball_model, a.person_model, a.cache_dir, a.start, a.end,
+                  a.person_every, a.chunk, device=a.device)
+
+
+def _cmd_track_ball(a: argparse.Namespace) -> None:
+    from pathlib import Path
+
+    import numpy as np
+
+    from .detection.runner import load_detections
+    from .tracking import track_ball
+    from .video import probe
+
+    cache = Path(a.cache_dir) / Path(a.video).stem
+    ball, _ = load_detections(cache)
+    out = track_ball(ball, probe(a.video).n_frames)
+    np.savez_compressed(cache / "ball_track.npz", **out)
+    n = int((out["state"] > 0).sum())
+    print(f"ball positions in {n} frames ({int((out['state'] == 2).sum())} interpolated) -> {cache / 'ball_track.npz'}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="hoopstats", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -105,6 +132,24 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--out", default="data/ball_dataset")
     s.add_argument("--labels-dir", default="labels/ball")
     s.set_defaults(func=_cmd_ball_dataset)
+
+    s = sub.add_parser("detect", help="run ball + player detection over a video (cached, resumable)")
+    s.add_argument("video")
+    s.add_argument("--calib", help="default: calib/<video stem>.json")
+    s.add_argument("--ball-model", default="data/models/ball_v1.pt")
+    s.add_argument("--person-model", default="data/models/yolo11s.pt")
+    s.add_argument("--cache-dir", default="cache")
+    s.add_argument("--start", type=int, default=0, help="first frame")
+    s.add_argument("--end", type=int, default=None, help="last frame (exclusive)")
+    s.add_argument("--person-every", type=int, default=3)
+    s.add_argument("--chunk", type=int, default=900)
+    s.add_argument("--device", default=None, help="mps / cuda / cpu (default: best available)")
+    s.set_defaults(func=_cmd_detect)
+
+    s = sub.add_parser("track-ball", help="link cached ball detections into one ball position per frame")
+    s.add_argument("video")
+    s.add_argument("--cache-dir", default="cache")
+    s.set_defaults(func=_cmd_track_ball)
 
     s = sub.add_parser("analyze", help="run the full pipeline on a video")
     s.add_argument("video")

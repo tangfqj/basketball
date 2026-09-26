@@ -11,6 +11,17 @@
   for component metrics, 3x3 rule set, per-subset evaluation.
 - v0.1 — Initial draft.
 
+## Status (2026-09-26)
+
+| Phase | Status |
+|---|---|
+| 0 Foundations | Done: skeleton, dataset ingestion, splits, shot labeling tool, evaluation script; IMG_0104 shots labelled |
+| 1 Calibration | Done: tool; IMG_0104 calibrated, IMG_0105–0108 derived by background matching |
+| 2.1 Players | Pretrained detector (93% recall on dataset boxes) + ByteTrack in `hoopstats detect` |
+| 2.2 Ball detector | 573 frames reviewed; `ball_v1` training in Colab; evaluation pending |
+| 2.3 Ball tracking | Tracker + evaluation script done; full-video evaluation pending (run `detect` on the Mac) |
+| 5 Teams | Colour clustering done (96–99% per detection, 12/12 tracks); pipeline wiring waits for player tracks |
+
 ## Guiding principles
 
 - **Evaluation first.** Labeled dev clips and a scoring script exist before any detection work, so every
