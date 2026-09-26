@@ -1,7 +1,7 @@
 event_id,timestamp_s,frame,team,zone,made,note
 0,31.431,942,A,beyond_arc,0,
 1,40.874,1225,B,inside_arc,0,
-2,54.921,1646,B,inside_arc,1,
+2,54.921,1646,B,ft,1,corrected: dataset notes FT success at frame 1682
 3,69.202,2074,A,inside_arc,0,
 4,77.577,2325,B,inside_arc,0,
 5,90.924,2725,B,ft,1,
