@@ -36,3 +36,28 @@ apex height, fall depth after the crossing, bounce, under-rim flag, apparent siz
   (`propose_shots.py --blank-made`).
 - Remaining errors (6) to inspect visually; a net-motion cue (pixel change in the net) is the next candidate
   feature if the depth ambiguity dominates.
+
+## Final test: IMG_0108 (never used for development; made/missed labelled without suggestions)
+
+Model frozen before the test (`models/make_model.json`, sha1 bc2fe68a…, commit 706ff40).
+
+| | Result |
+|---|---|
+| Attempts | recall **38 / 38**, precision 38 / 39 |
+| Make / miss — learned model | **37 / 38 (97.4%)** |
+| Make / miss — rule v1 (comparison) | 29 / 38 (76.3%) |
+
+- The single error (362.7 s): a miss predicted as made with probability 0.60 — crossing 0.5 rim radii from the
+  centre, little braking; close to the decision boundary.
+- The extra detection (299.7 s) crosses the rim level 5 rim radii to the side and is classified as a miss,
+  so it would add an attempt but no points.
+- Release times on IMG_0105–0108 come from shifted proposals and are therefore not an independent measurement.
+
+**Phase 3 closed.** Requirements targets: attempt recall ≥ 90% ✓ (100%), precision ≥ 90% ✓ (97–100%),
+make/miss ≥ 95% ✓ (95.6% leave-one-video-out, 97.4% on the untouched video).
+
+## Known weakness to watch: "no ball" frames
+
+Across IMG_0104 and IMG_0108 the tracker reports a ball on 8 of 19 frames labelled "no ball" (mostly
+bridging a briefly hidden ball, or a low-confidence detection). It has not caused shot errors so far, but it
+matters for Phase 4 (shooter = player holding the ball) and should be re-checked there.

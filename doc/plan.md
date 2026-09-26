@@ -11,7 +11,7 @@
   for component metrics, 3x3 rule set, per-subset evaluation.
 - v0.1 — Initial draft.
 
-## Status (2026-09-26)
+## Status (2026-09-26, updated after the IMG_0108 test)
 
 | Phase | Status |
 |---|---|
@@ -20,7 +20,7 @@
 | 2.1 Players | Pretrained detector (93% recall on dataset boxes) + ByteTrack in `hoopstats detect` |
 | 2.2 Ball detector | `ball_v1`: val precision 0.977 / recall 0.971 (target ≥ 0.90 met) |
 | 2.3 Ball tracking | IMG_0104 full video: recall 97% (val 97%), 33/33 shot flights reach the rim — exit criterion met |
-| 3 Shots, make/miss | Attempts 103/103 on unseen 0105–0107; make/miss learned model 95.6% leave-one-video-out (rule v1: 86.8%); final test on 0108 pending |
+| 3 Shots, make/miss | **Done.** Attempts 141/141 on 0105–0108; make/miss 95.6% leave-one-video-out, **97.4% on untouched IMG_0108** |
 | 5 Teams | Colour clustering done (96–99% per detection, 12/12 tracks); pipeline wiring waits for player tracks |
 
 ## Guiding principles
