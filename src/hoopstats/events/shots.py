@@ -22,6 +22,7 @@ size at the crossing is recorded as a feature (`size_ratio`) for later use.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from itertools import pairwise
 
 import numpy as np
 
@@ -109,7 +110,7 @@ def detect_shots(track: dict, rim_center: tuple[float, float], rim_radius: float
             continue
         # rim-level crossing on the way down
         cross = None
-        for f0, f1 in zip(after, after[1:]):
+        for f0, f1 in pairwise(after):
             if y[f0] < ry <= y[f1]:
                 cross = f1
                 t = (ry - y[f0]) / max(1e-6, y[f1] - y[f0])
