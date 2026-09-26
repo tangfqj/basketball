@@ -11,7 +11,7 @@
   for component metrics, 3x3 rule set, per-subset evaluation.
 - v0.1 — Initial draft.
 
-## Status (2026-09-26, updated after the IMG_0108 test)
+## Status (2026-09-27 — Milestone 1 wrapped up)
 
 | Phase | Status |
 |---|---|
@@ -22,8 +22,8 @@
 | 2.3 Ball tracking | IMG_0104 full video: recall 97% (val 97%), 33/33 shot flights reach the rim — exit criterion met |
 | 3 Shots, make/miss | **Done.** Attempts 141/141 on 0105–0108; make/miss 95.6% leave-one-video-out, **97.4% on untouched IMG_0108** |
 | 4 Zone | Shooter + floor point at release + FT context: 170/174 (97.7%, dev) |
-| 5 Teams | Per shot via the shooter's un-occluded views: 156/174 (89.7%, dev) — just below target; IMG_0107 weakest |
-| 6 Pipeline | `hoopstats analyze` + annotated video done; IMG_0104 end to end: recall 100%, precision 97%, make/miss 100%, zone 100%, team 94%, total points exact. Speed: M2 4.6 fps (models ~90% of the time) → pipeline moved to cloud GPU (`notebooks/run_pipeline_colab.ipynb`), timing pending; final test pending |
+| 5 Teams | Per shot via the shooter's un-occluded views + track-vote fallback: 156/174 (89.7%, dev) — just below target |
+| 6 Pipeline | **Done.** `hoopstats analyze` end to end, annotated video, cloud notebook (A100 11.3 fps); final held-out test (IMG_0111–0115) open — see `doc/milestone1-report.md` |
 
 ## Guiding principles
 

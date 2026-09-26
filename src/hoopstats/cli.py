@@ -36,7 +36,8 @@ def _cmd_analyze(a: argparse.Namespace) -> None:
     rng = tuple(float(v) for v in a.render_range.split(":")) if a.render_range else None
     analyze(RunConfig(video=a.video, calib=a.calib or f"calib/{Path(a.video).stem}.json", out_dir=a.out,
                       rules=a.rules, cache_dir=a.cache_dir, ball_model=a.ball_model, make_model=a.make_model,
-                      render=a.render or rng is not None, render_range=rng, batch=a.batch, device=a.device))
+                      render=a.render or rng is not None, render_range=rng, batch=a.batch, device=a.device,
+                      workers=a.workers))
 
 
 def _cmd_calibrate(a: argparse.Namespace) -> None:
@@ -72,8 +73,14 @@ def _cmd_detect(a: argparse.Namespace) -> None:
     from .detection.runner import run_detection
 
     calib = a.calib or f"calib/{Path(a.video).stem}.json"
-    run_detection(a.video, calib, a.ball_model, a.person_model, a.cache_dir, a.start, a.end,
-                  a.person_every, a.chunk, device=a.device, batch=a.batch)
+    if a.workers > 1:
+        from .detection.runner import run_detection_parallel
+
+        run_detection_parallel(a.video, calib, a.ball_model, a.person_model, a.cache_dir, workers=a.workers,
+                               batch=a.batch, device=a.device, chunk=a.chunk)
+    else:
+        run_detection(a.video, calib, a.ball_model, a.person_model, a.cache_dir, a.start, a.end,
+                      a.person_every, a.chunk, device=a.device, batch=a.batch, id_base=a.id_base)
 
 
 def _cmd_track_ball(a: argparse.Namespace) -> None:
@@ -149,6 +156,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--chunk", type=int, default=900)
     s.add_argument("--device", default=None, help="mps / cuda / cpu (default: best available)")
     s.add_argument("--batch", type=int, default=1, help="frames per model call (8-16 on a large GPU)")
+    s.add_argument("--workers", type=int, default=1, help="parallel processes on separate parts of the video")
+    s.add_argument("--id-base", type=int, default=0, help=argparse.SUPPRESS)
     s.set_defaults(func=_cmd_detect)
 
     s = sub.add_parser("track-ball", help="link cached ball detections into one ball position per frame")
@@ -168,6 +177,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--rules", choices=["5v5", "3x3"], default="3x3")
     s.add_argument("--cache-dir", default="cache")
     s.add_argument("--render", action="store_true")
+    s.add_argument("--workers", type=int, default=1, help="parallel detection processes (4 on an A100)")
     s.set_defaults(func=_cmd_analyze)
 
     s = sub.add_parser("evaluate", help="score predicted events against ground-truth labels")

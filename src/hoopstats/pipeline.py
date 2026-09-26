@@ -19,7 +19,7 @@ import numpy as np
 from . import __version__
 from .calibration import Calibration
 from .court import get_court
-from .detection.runner import load_detections, run_detection
+from .detection.runner import load_detections, run_detection, run_detection_parallel
 from .events import detect_shots
 from .events.make_model import MakeModel
 from .events.shooter import shooter_info
@@ -46,6 +46,7 @@ class RunConfig:
     render_range: tuple[float, float] | None = None     # seconds
     batch: int = 1                                        # frames per model call (8-16 on a large GPU)
     device: str | None = None
+    workers: int = 1                                      # parallel detection processes
 
 
 def _detections_complete(cache: Path, n_frames: int, chunk: int = 900) -> bool:
@@ -76,8 +77,12 @@ def analyze(cfg: RunConfig) -> list[ShotEvent]:
     # 1. detection (cached, resumable)
     if not _detections_complete(cache, info.n_frames):
         print("[1/5] detecting ball and players ...")
-        run_detection(cfg.video, cfg.calib, cfg.ball_model, cfg.person_model, cfg.cache_dir,
-                      device=cfg.device, batch=cfg.batch)
+        if cfg.workers > 1:
+            run_detection_parallel(cfg.video, cfg.calib, cfg.ball_model, cfg.person_model, cfg.cache_dir,
+                                   workers=cfg.workers, batch=cfg.batch, device=cfg.device)
+        else:
+            run_detection(cfg.video, cfg.calib, cfg.ball_model, cfg.person_model, cfg.cache_dir,
+                          device=cfg.device, batch=cfg.batch)
     else:
         print("[1/5] detections found in cache")
     balls, persons = load_detections(cache)
@@ -131,6 +136,7 @@ def analyze(cfg: RunConfig) -> list[ShotEvent]:
     if cfg.render:
         from .render import render_video
 
+        print("      rendering the annotated video ...")
         render_video(cfg.video, track, persons, events, shots, cal, out / "annotated.mp4", fps, cfg.rules,
                      cfg.render_range)
     lap("outputs_render")

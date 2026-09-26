@@ -74,7 +74,8 @@ def _frame_reader(video: str, frames: range, W: int, H: int, q: queue.Queue, sta
 
 def run_detection(video: str, calib: str, ball_model: str, person_model: str = "data/models/yolo11s.pt",
                   cache_dir: str = "cache", start: int = 0, end: int | None = None, person_every: int = 3,
-                  chunk: int = 900, ball_conf: float = 0.05, device: str | None = None, batch: int = 1) -> Path:
+                  chunk: int = 900, ball_conf: float = 0.05, device: str | None = None, batch: int = 1,
+                  id_base: int = 0) -> Path:
     """`batch` > 1 sends several frames per model call (faster on large GPUs). Decoding always runs in a
     background thread, overlapping with inference."""
     from ultralytics import YOLO
@@ -94,8 +95,12 @@ def run_detection(video: str, calib: str, ball_model: str, person_model: str = "
     rx0 = int(np.clip(cal.rim_center[0] - 640, 0, W - 1280))
     ry0 = int(np.clip(cal.rim_center[1] - 600, 0, H - 960))
     # track ids must stay unique if a run is resumed in a new process (the tracker restarts at 1)
+    # parallel workers get disjoint id ranges (id_base = worker * ID_RANGE)
     prev = [np.load(p)["persons"] for p in (cache / "detections").glob("chunk_*.npz")]
-    id_offset = int(max((a[:, 1].max() for a in prev if len(a)), default=0)) + 1 if prev else 0
+    ids = [a[:, 1] for a in prev if len(a)]
+    ids = np.concatenate(ids) if ids else np.zeros(0)
+    ids = ids[(ids >= id_base) & (ids < id_base + ID_RANGE)]
+    id_offset = max(id_base, int(ids.max()) + 1 if len(ids) else id_base)
     t0, done = time.time(), 0
     timing = {"decode": 0.0, "wait_for_frames": 0.0, "ball_half": 0.0, "ball_rim": 0.0, "players": 0.0}
     print(f"{video}: frames {start}-{end} on {device}, batch {batch}; ball model {ball_model}")
@@ -156,5 +161,49 @@ def run_detection(video: str, calib: str, ball_model: str, person_model: str = "
         stats = {"frames": done, "seconds": round(time.time() - t0, 1), "fps": round(done / (time.time() - t0), 2),
                  "device": device, "batch": batch,
                  "ms_per_frame": {k: round(1000 * v / done, 1) for k, v in timing.items()}}
-        (cache / "detections" / "timing.json").write_text(json.dumps(stats, indent=1))
+        (cache / "detections" / f"timing_{start:06d}.json").write_text(json.dumps(stats, indent=1))
+        if id_base == 0 and start == 0:          # single-process run: this is the whole-video timing
+            (cache / "detections" / "timing.json").write_text(json.dumps(stats, indent=1))
+    return cache
+
+
+ID_RANGE = 100_000   # player-track ids per worker (float32 stores integers exactly up to 16.7 M)
+
+
+def run_detection_parallel(video: str, calib: str, ball_model: str, person_model: str = "data/models/yolo11s.pt",
+                           cache_dir: str = "cache", workers: int = 4, batch: int = 1, device: str | None = None,
+                           chunk: int = 900) -> Path:
+    """Split the video into `workers` contiguous parts and detect them in parallel processes sharing the GPU.
+    Decoding 4K HEVC is single-stream CPU work, so this is what speeds up a large GPU. Player tracks restart
+    at each part boundary (a few boundaries per video)."""
+    import subprocess
+    import sys
+
+    cap = cv2.VideoCapture(video)
+    n = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    cap.release()
+    chunks = list(range(0, n, chunk))
+    groups = [g for g in np.array_split(np.array(chunks), workers) if len(g)]
+    t0 = time.time()
+    procs = []
+    for w, g in enumerate(groups):
+        start, end = int(g[0]), min(n, int(g[-1]) + chunk)
+        cmd = [sys.executable, "-m", "hoopstats.cli", "detect", video, "--calib", calib, "--ball-model", ball_model,
+               "--person-model", person_model, "--cache-dir", cache_dir, "--start", str(start), "--end", str(end),
+               "--chunk", str(chunk), "--batch", str(batch), "--id-base", str(w * ID_RANGE)]
+        if device:
+            cmd += ["--device", device]
+        procs.append(subprocess.Popen(cmd))
+    codes = [p.wait() for p in procs]
+    if any(codes):
+        raise RuntimeError(f"detection worker failed: exit codes {codes}")
+    cache = Path(cache_dir) / Path(video).stem
+    parts = [json.loads(p.read_text()) for p in (cache / "detections").glob("timing_*.json")]
+    wall = time.time() - t0
+    frames = sum(p["frames"] for p in parts)
+    stats = {"frames": frames, "seconds": round(wall, 1), "fps": round(frames / wall, 2), "workers": len(groups),
+             "device": parts[0]["device"] if parts else device, "batch": batch,
+             "per_worker_fps": [p["fps"] for p in parts]}
+    (cache / "detections" / "timing.json").write_text(json.dumps(stats, indent=1))
+    print(f"parallel detection: {frames} frames in {wall / 60:.1f} min = {frames / wall:.1f} fps ({len(groups)} workers)")
     return cache
