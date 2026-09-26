@@ -48,6 +48,20 @@ def _cmd_label(a: argparse.Namespace) -> None:
     run_label_server(a.video, a.out, cache_dir=a.cache_dir, port=a.port, open_browser=not a.no_browser)
 
 
+def _cmd_ball_review(a: argparse.Namespace) -> None:
+    from .labeling.ball_review import run_ball_review
+
+    run_ball_review(a.videos or None, port=a.port, open_browser=not a.no_browser)
+
+
+def _cmd_ball_dataset(a: argparse.Namespace) -> None:
+    import json
+
+    from .training.ball_dataset import build_ball_dataset
+
+    print(json.dumps(build_ball_dataset(a.out, a.labels_dir), indent=1))
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="hoopstats", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -80,6 +94,17 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--port", type=int, default=8765)
     s.add_argument("--no-browser", action="store_true")
     s.set_defaults(func=_cmd_label)
+
+    s = sub.add_parser("ball-review", help="review / correct pre-annotated ball boxes in the browser")
+    s.add_argument("videos", nargs="*", help="default: all videos under data/ball_frames/")
+    s.add_argument("--port", type=int, default=8767)
+    s.add_argument("--no-browser", action="store_true")
+    s.set_defaults(func=_cmd_ball_review)
+
+    s = sub.add_parser("ball-dataset", help="build ball_dataset.zip (YOLO format) from reviewed ball labels")
+    s.add_argument("--out", default="data/ball_dataset")
+    s.add_argument("--labels-dir", default="labels/ball")
+    s.set_defaults(func=_cmd_ball_dataset)
 
     s = sub.add_parser("analyze", help="run the full pipeline on a video")
     s.add_argument("video")

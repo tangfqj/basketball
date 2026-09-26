@@ -41,10 +41,12 @@ src/hoopstats/
   evaluation.py       event matching and metrics
   video.py            ffprobe / ffmpeg helpers
   datasets/           TrackID3x3 loaders
-  labeling/           browser-based shot labeling tool
+  labeling/           browser tools: shot labeling, ball-box review
+  training/           training-data export (ball dataset)
 notebooks/            Colab notebook for training the ball detector
 configs/              default run configuration, dataset splits
-labels/               hand-labeled shot events (committed)
+labels/               hand-labeled shot events and ball boxes (committed)
+calib/                per-video calibration (committed)
 tests/                unit tests
 doc/                  requirements, plan, dataset notes
 data/                 videos and datasets (git-ignored)
@@ -54,6 +56,9 @@ data/                 videos and datasets (git-ignored)
 
 ```bash
 uv run hoopstats label data/outdoor/IMG_0104.MOV       # label shots in the browser, see doc/labeling-guide.md
+uv run hoopstats calibrate data/outdoor/IMG_0104.MOV --init trackid3x3-outdoor   # court + rim
+uv run hoopstats ball-review                           # review ball boxes, see doc/ball-labeling-guide.md
+uv run hoopstats ball-dataset                          # -> data/ball_dataset.zip for Colab training
 uv run hoopstats probe data/outdoor/*.MOV
 uv run hoopstats proxy data/outdoor/IMG_0104.MOV cache/IMG_0104/proxy_1080.mp4
 uv run hoopstats evaluate --gt labels/IMG_0104.csv --pred out/IMG_0104/events.csv --rules 3x3
