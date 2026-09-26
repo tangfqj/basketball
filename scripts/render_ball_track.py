@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import argparse
+from itertools import pairwise
 from pathlib import Path
 
 import cv2
@@ -40,7 +41,7 @@ def main():
             cv2.rectangle(img, (x, y), (x + w, y + h), (200, 200, 200), 3)
             cv2.putText(img, str(int(p[1])), (x, y - 10), 0, 1.5, (200, 200, 200), 3)
         pts = [(int(tr["x"][g]), int(tr["y"][g]), tr["state"][g]) for g in range(max(0, f - a.trail), f + 1) if tr["state"][g]]
-        for (x0, y0, _), (x1, y1, _) in zip(pts, pts[1:]):
+        for (x0, y0, _), (x1, y1, _) in pairwise(pts):
             cv2.line(img, (x0, y0), (x1, y1), (0, 255, 255), 4)
         if tr["state"][f]:
             color = (0, 200, 0) if tr["state"][f] == 1 else (0, 0, 255)
