@@ -36,7 +36,7 @@ def _cmd_analyze(a: argparse.Namespace) -> None:
     rng = tuple(float(v) for v in a.render_range.split(":")) if a.render_range else None
     analyze(RunConfig(video=a.video, calib=a.calib or f"calib/{Path(a.video).stem}.json", out_dir=a.out,
                       rules=a.rules, cache_dir=a.cache_dir, ball_model=a.ball_model, make_model=a.make_model,
-                      render=a.render or rng is not None, render_range=rng))
+                      render=a.render or rng is not None, render_range=rng, batch=a.batch, device=a.device))
 
 
 def _cmd_calibrate(a: argparse.Namespace) -> None:
@@ -73,7 +73,7 @@ def _cmd_detect(a: argparse.Namespace) -> None:
 
     calib = a.calib or f"calib/{Path(a.video).stem}.json"
     run_detection(a.video, calib, a.ball_model, a.person_model, a.cache_dir, a.start, a.end,
-                  a.person_every, a.chunk, device=a.device)
+                  a.person_every, a.chunk, device=a.device, batch=a.batch)
 
 
 def _cmd_track_ball(a: argparse.Namespace) -> None:
@@ -148,6 +148,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--person-every", type=int, default=3)
     s.add_argument("--chunk", type=int, default=900)
     s.add_argument("--device", default=None, help="mps / cuda / cpu (default: best available)")
+    s.add_argument("--batch", type=int, default=1, help="frames per model call (8-16 on a large GPU)")
     s.set_defaults(func=_cmd_detect)
 
     s = sub.add_parser("track-ball", help="link cached ball detections into one ball position per frame")
@@ -162,6 +163,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--ball-model", default="data/models/ball_v1.pt")
     s.add_argument("--make-model", default="models/make_model.json")
     s.add_argument("--render-range", help="render only this part, in seconds, e.g. 60:120 (implies --render)")
+    s.add_argument("--batch", type=int, default=1, help="frames per model call during detection (8-16 on a large GPU)")
+    s.add_argument("--device", default=None, help="mps / cuda / cpu (default: best available)")
     s.add_argument("--rules", choices=["5v5", "3x3"], default="3x3")
     s.add_argument("--cache-dir", default="cache")
     s.add_argument("--render", action="store_true")

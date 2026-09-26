@@ -44,6 +44,8 @@ class RunConfig:
     make_model: str = "models/make_model.json"
     render: bool = False
     render_range: tuple[float, float] | None = None     # seconds
+    batch: int = 1                                        # frames per model call (8-16 on a large GPU)
+    device: str | None = None
 
 
 def _detections_complete(cache: Path, n_frames: int, chunk: int = 900) -> bool:
@@ -63,11 +65,23 @@ def analyze(cfg: RunConfig) -> list[ShotEvent]:
     log = {"version": __version__, "video": cfg.video, "calib": cfg.calib, "rules": cfg.rules,
            "court_standard": cal.court_standard, "ball_model": cfg.ball_model, "make_model": cfg.make_model}
 
+    stage = {}
+    ts = time.time()
+
+    def lap(name):
+        nonlocal ts
+        stage[name] = round(time.time() - ts, 1)
+        ts = time.time()
+
     # 1. detection (cached, resumable)
     if not _detections_complete(cache, info.n_frames):
         print("[1/5] detecting ball and players ...")
-        run_detection(cfg.video, cfg.calib, cfg.ball_model, cfg.person_model, cfg.cache_dir)
+        run_detection(cfg.video, cfg.calib, cfg.ball_model, cfg.person_model, cfg.cache_dir,
+                      device=cfg.device, batch=cfg.batch)
+    else:
+        print("[1/5] detections found in cache")
     balls, persons = load_detections(cache)
+    lap("detect")
 
     # 2. ball track (cached)
     track_p = cache / "ball_track.npz"
@@ -77,11 +91,13 @@ def analyze(cfg: RunConfig) -> list[ShotEvent]:
         print("[2/5] tracking the ball ...")
         track = track_ball(balls, info.n_frames)
         np.savez_compressed(track_p, **track)
+    lap("track")
 
     # 3. shots + make/miss
     print("[3/5] shots and make/miss ...")
     mm = MakeModel.load(cfg.make_model) if cfg.make_model and Path(cfg.make_model).exists() else None
     shots = detect_shots(track, cal.rim_center, rr, fps, make_model=mm)
+    lap("shots")
 
     # 4. shooter, zone, team
     print(f"[4/5] shooter, zone and team for {len(shots)} shots ...")
@@ -102,6 +118,8 @@ def analyze(cfg: RunConfig) -> list[ShotEvent]:
             court_y=None if si.court_xy is None else round(si.court_xy[1], 2),
             confidence=round(s.confidence, 3)))
 
+    lap("shooter_zone_team")
+
     # 5. outputs
     print("[5/5] writing outputs ...")
     apply_rules(events, cfg.rules)
@@ -112,7 +130,10 @@ def analyze(cfg: RunConfig) -> list[ShotEvent]:
 
         render_video(cfg.video, track, persons, events, shots, cal, out / "annotated.mp4", fps, cfg.rules,
                      cfg.render_range)
-    log.update(n_shots=len(events), processing_s=round(time.time() - t0, 1))
+    lap("outputs_render")
+    timing_p = cache / "detections" / "timing.json"
+    log.update(n_shots=len(events), video_s=round(info.duration_s, 1), processing_s=round(time.time() - t0, 1),
+               stage_s=stage, detection=json.loads(timing_p.read_text()) if timing_p.exists() else None)
     (out / "run_log.json").write_text(json.dumps(log, indent=2))
     print(f"done: {len(events)} shots -> {out}")
     return events
