@@ -12,7 +12,8 @@ Release = the first frame of that upward flight (requirements SH-4).
 
 Make/miss (v1, rule-based; features are kept for a learned classifier later):
   * the ball crosses the rim level *downwards* close to the rim centre (|dx| small),
-  * keeps falling through the net region below the rim, staying roughly under the rim,
+  * keeps falling through the net region below the rim, either staying under the rim or visibly braked
+    by the net (horizontal speed drops sharply — angled entries drift sideways through the net),
   * and does not bounce back above the rim right after the crossing.
 Known risk (head-on camera): a ball dropping just *in front of* the rim looks similar; its larger apparent
 size at the crossing is recorded as a feature (`size_ratio`) for later use.
@@ -42,6 +43,7 @@ class ShotParams:
     net_dx_rr: float = 1.6            # ... while staying under the rim
     net_window_s: float = 0.5
     bounce_rr: float = 0.5            # rising back above rim level by this much after crossing = rim-out
+    brake_ratio: float = 0.5          # net braking: |vx after| <= ratio * |vx before|
 
 
 @dataclass
@@ -70,6 +72,14 @@ def _segments_rising(y: np.ndarray, valid: np.ndarray, max_gap: int) -> list[tup
     if s is not None:
         segs.append((s, prev))
     return segs
+
+
+def _speed(v: np.ndarray, valid: np.ndarray, f0: int, f1: int) -> float | None:
+    """Mean per-frame change of v over detected/interpolated frames in [f0, f1]."""
+    idx = [f for f in range(max(0, f0), min(len(v), f1 + 1)) if valid[f]]
+    if len(idx) < 2:
+        return None
+    return float((v[idx[-1]] - v[idx[0]]) / (idx[-1] - idx[0]))
 
 
 def detect_shots(track: dict, rim_center: tuple[float, float], rim_radius: float, fps: float,
@@ -113,9 +123,17 @@ def detect_shots(track: dict, rim_center: tuple[float, float], rim_radius: float
             conf = 0.7                                           # never came down through rim level near the basket
         else:
             win = [f for f in range(cross, min(len(y), cross + int(p.net_window_s * fps))) if valid[f]]
-            through = any(y[f] - ry >= p.net_depth_rr * rr for f in win if abs(x[f] - rx) <= p.net_dx_rr * rr)
+            deep = [f for f in win if y[f] - ry >= p.net_depth_rr * rr]
+            under_rim = any(abs(x[f] - rx) <= p.net_dx_rr * rr for f in deep)
+            # the net brakes the ball: horizontal speed after the crossing is much lower than before
+            # (angled entries drift sideways through the net, so "under the rim" alone is too strict)
+            vx_in = _speed(x, valid, cross - 6, cross)
+            vx_out = _speed(x, valid, cross + 3, cross + 12)
+            braked = vx_in is not None and vx_out is not None and abs(vx_in) > 4 and abs(vx_out) <= p.brake_ratio * abs(vx_in)
+            through = bool(deep) and (under_rim or braked)
             bounce = any(ry - y[f] >= p.bounce_rr * rr for f in win)
-            feats.update(dx_cross_rr=dx_cross / rr, through_net=through, bounced_up=bounce,
+            feats.update(dx_cross_rr=dx_cross / rr, through_net=through, bounced_up=bounce, under_rim=under_rim,
+                         vx_in=vx_in, vx_out=vx_out,
                          size_ratio=float(size[cross] / expected_size) if np.isfinite(size[cross]) else None,
                          cross_interpolated=bool(state[cross] == 2))
             inside = abs(dx_cross) <= p.make_dx_rr * rr

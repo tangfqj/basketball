@@ -19,7 +19,8 @@
 | 1 Calibration | Done: tool; IMG_0104 calibrated, IMG_0105–0108 derived by background matching |
 | 2.1 Players | Pretrained detector (93% recall on dataset boxes) + ByteTrack in `hoopstats detect` |
 | 2.2 Ball detector | `ball_v1`: val precision 0.977 / recall 0.971 (target ≥ 0.90 met) |
-| 2.3 Ball tracking | First 30 s of IMG_0104: 10/10 reviewed frames, 3/3 shots fully covered; full-video evaluation pending |
+| 2.3 Ball tracking | IMG_0104 full video: recall 97% (val 97%), 33/33 shot flights reach the rim — exit criterion met |
+| 3 Shots, make/miss | v1 on IMG_0104 (dev): attempts 33/33 (1 extra, post-game), make/miss 33/33; needs more labelled videos |
 | 5 Teams | Colour clustering done (96–99% per detection, 12/12 tracks); pipeline wiring waits for player tracks |
 
 ## Guiding principles
