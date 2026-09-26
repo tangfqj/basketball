@@ -11,6 +11,7 @@ scale. Crops containing a ball are placed at a random offset (the ball is never 
 from __future__ import annotations
 
 import json
+import math
 import random
 import shutil
 import zipfile
@@ -25,10 +26,12 @@ def _crop_origin(W, H, cw, ch, box, rng, margin=48, fallback=None):
     """Top-left of a cw x ch crop containing `box` (with margin) at a random position; else around fallback."""
     if box is not None:
         x, y, w, h = box
-        lo_x, hi_x = max(0, x + w + margin - cw), min(W - cw, x - margin)
-        lo_y, hi_y = max(0, y + h + margin - ch), min(H - ch, y - margin)
-        if lo_x <= hi_x and lo_y <= hi_y:
-            return int(rng.uniform(lo_x, hi_x)), int(rng.uniform(lo_y, hi_y))
+        for m in (margin, 0):            # near the image border the margin may not fit
+            lo_x, hi_x = math.ceil(max(0, x + w + m - cw)), math.floor(min(W - cw, x - m))
+            lo_y, hi_y = math.ceil(max(0, y + h + m - ch)), math.floor(min(H - ch, y - m))
+            if lo_x <= hi_x and lo_y <= hi_y:
+                return rng.randint(lo_x, hi_x), rng.randint(lo_y, hi_y)
+        raise ValueError(f"box {box} does not fit in a {cw}x{ch} crop of a {W}x{H} image")
     cx, cy = fallback if fallback is not None else (rng.uniform(0, W), rng.uniform(0, H))
     return (int(min(max(0, cx - cw / 2 + rng.uniform(-cw / 4, cw / 4)), W - cw)),
             int(min(max(0, cy - ch / 2 + rng.uniform(-ch / 4, ch / 4)), H - ch)))
@@ -38,8 +41,10 @@ def _write(img, box, ox, oy, cw, ch, stem, split, root):
     crop = img[oy:oy + ch, ox:ox + cw]
     cv2.imwrite(str(root / "images" / split / f"{stem}.jpg"), crop, [cv2.IMWRITE_JPEG_QUALITY, 90])
     line = ""
-    if box is not None:
-        x, y, w, h = box[0] - ox, box[1] - oy, box[2], box[3]
+    if box is not None:   # clip to the crop (a box can touch the image border)
+        x0, y0 = max(0.0, box[0] - ox), max(0.0, box[1] - oy)
+        x1, y1 = min(cw, box[0] + box[2] - ox), min(ch, box[1] + box[3] - oy)
+        x, y, w, h = x0, y0, x1 - x0, y1 - y0
         line = f"0 {(x + w / 2) / cw:.6f} {(y + h / 2) / ch:.6f} {w / cw:.6f} {h / ch:.6f}\n"
     (root / "labels" / split / f"{stem}.txt").write_text(line)
 

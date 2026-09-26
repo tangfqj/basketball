@@ -18,3 +18,12 @@ def test_negative_crop_inside_image():
     for _ in range(50):
         ox, oy = _crop_origin(1920, 1080, 1280, 1080, None, rng, fallback=(1800, 50))
         assert 0 <= ox <= 640 and oy == 0
+
+
+def test_fractional_edges_never_cut_the_box():
+    rng = random.Random(2)
+    box = [2600.4, 900.7, 33.3, 33.9]
+    for _ in range(500):
+        ox, oy = _crop_origin(3840, 2160, 1280, 1280, box, rng, margin=0)
+        assert ox <= box[0] and box[0] + box[2] <= ox + 1280
+        assert oy <= box[1] and box[1] + box[3] <= oy + 1280
