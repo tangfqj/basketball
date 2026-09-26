@@ -36,7 +36,7 @@ def main():
     dump = []
     for v in a.videos:
         tr = dict(np.load(Path(a.cache_dir) / v / "ball_track.npz"))
-        _, persons = load_detections(Path(a.cache_dir) / v)
+        balls, persons = load_detections(Path(a.cache_dir) / v)
         cal = Calibration.load(f"calib/{v}.json")
         court = get_court(cal.court_standard)
         rr = abs(cal.rim_edge[1][0] - cal.rim_edge[0][0]) / 2
@@ -45,7 +45,7 @@ def main():
                 for i, s in enumerate(shots)]
         gt = read_events_csv(f"labels/{v}.csv")
         for i, j in match_events(gt, pred, 1.0):
-            info = shooter_info(persons, tr, shots[j].release_frame, cal, court, FPS)
+            info = shooter_info(persons, tr, shots[j].release_frame, cal, court, FPS, balls=balls)
             z = info.zone or "none"
             conf[(gt[i].zone.value, z)] += 1
             dump.append({"video": v, "t": round(gt[i].timestamp_s, 2), "gt_zone": gt[i].zone.value, "pred_zone": z,

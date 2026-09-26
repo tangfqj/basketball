@@ -36,7 +36,7 @@ def main():
     for v in a.videos:
         cache = Path(a.cache_dir) / v
         tr = dict(np.load(cache / "ball_track.npz"))
-        _, persons = load_detections(cache)
+        balls, persons = load_detections(cache)
         cal = Calibration.load(f"calib/{v}.json")
         court = get_court(cal.court_standard)
         teams, stats = track_teams(f"data/outdoor/{v}.MOV", persons, cal, court, cache)
@@ -49,7 +49,7 @@ def main():
         gt = read_events_csv(f"labels/{v}.csv")
         pairs = []
         for i, j in match_events(gt, pred, 1.0):
-            tid, _ = find_shooter(persons, tr, shots[j].release_frame)
+            tid, _ = find_shooter(persons, tr, shots[j].release_frame, balls=balls)
             team = "?"
             if tid is not None:
                 team, _ = shot_team(cap, persons, tid, shots[j].release_frame, model, bg)

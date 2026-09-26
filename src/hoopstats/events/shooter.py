@@ -1,8 +1,7 @@
 """Shooter, shooting position and zone (Phase 4, requirements TY-1..TY-4, TM-1).
 
-Shooter: the player whose upper body is closest to the ball during the first frames of the flight
-(the ball leaves the shooter's hands at the release; a defender's box may overlap, but the ball is at the
-shooter's hands/head, not at the defender's). Distances are normalised by box height.
+Shooter: the player whose upper body is closest to the ball during the first frames of the flight.
+(Ranking by ball possession before the release was tried and made results worse; see find_shooter.)
 
 Shooting position: the shooter's floor point (bottom-centre of the box) at the detected release, which is
 the start of the shooting motion — feet still planted (last ground contact before a jump shot).
@@ -32,16 +31,14 @@ def _persons_at(persons: np.ndarray, f: int) -> np.ndarray:
     return persons[persons[:, 0] == f]
 
 
-def find_shooter(persons: np.ndarray, track: dict, release: int, person_every: int = 3,
-                 look_ahead: int = 9) -> tuple[int | None, float | None]:
-    """-> (track id, score). persons: (N, 7) [frame, id, x, y, w, h, conf] in 4K pixels."""
+def _near_release(persons, track, release, person_every, look_ahead):
+    """Old criterion: normalised distance from the ball to each player's upper body just after release."""
     votes: dict[int, list[float]] = {}
     f0 = release - release % person_every
     for f in range(f0, release + look_ahead + 1, person_every):
-        g = f if np.isfinite(track["x"][f]) else None
-        if g is None:
+        if not np.isfinite(track["x"][f]):
             continue
-        bx, by = track["x"][g], track["y"][g]
+        bx, by = track["x"][f], track["y"][f]
         for _, tid, x, y, w, h, _ in _persons_at(persons, f):
             if tid < 0:
                 continue
@@ -49,10 +46,49 @@ def find_shooter(persons: np.ndarray, track: dict, release: int, person_every: i
             dx = max(0.0, abs(bx - hx) - w / 2)          # inside the box width: no horizontal penalty
             d = np.hypot(dx, max(0.0, by - (y + 0.45 * h)) + max(0.0, (y - 0.4 * h) - by)) / h
             votes.setdefault(int(tid), []).append(d)
-    if not votes:
+    return {t: (float(np.median(v)), len(v)) for t, v in votes.items()}
+
+
+def _possession(persons, track, balls, release, person_every, before):
+    """Frames in the `before` window in which a ball position (track, or a raw detection) lies inside a
+    player's box — the shooter has the ball before the shot; a contesting defender only near the release."""
+    counts: dict[int, int] = {}
+    f0 = release - before
+    f0 -= f0 % person_every
+    for f in range(f0, release + 1, person_every):
+        pts = []
+        if np.isfinite(track["x"][f]):
+            pts.append((track["x"][f], track["y"][f]))
+        if balls is not None:
+            sel = balls[(balls[:, 0] == f) & (balls[:, 5] >= 0.15)]
+            pts += [(b[1] + b[3] / 2, b[2] + b[4] / 2) for b in sel]
+        if not pts:
+            continue
+        for _, tid, x, y, w, h, _ in _persons_at(persons, f):
+            if tid < 0:
+                continue
+            mx = 0.1 * w
+            if any(x - mx <= px <= x + w + mx and y - 0.1 * h <= py <= y + 0.8 * h for px, py in pts):
+                counts[int(tid)] = counts.get(int(tid), 0) + 1
+    return counts
+
+
+def find_shooter(persons: np.ndarray, track: dict, release: int, person_every: int = 3,
+                 look_ahead: int = 9, balls: np.ndarray | None = None, before: int = 12,
+                 use_possession: bool = False) -> tuple[int | None, float | None]:
+    """-> (track id, score): the player whose upper body is closest to the ball just after release.
+    `use_possession` (experimental, off): rank first by ball possession in the `before` frames. It made both
+    zone (97.7% -> 93-96%) and team (IMG_0107: 80% -> 74%) worse on IMG_0104-0108 — in crowded shots the
+    contesting defender's box also contains the ball, and longer windows reach back to the passer.
+    persons: (N, 7) [frame, id, x, y, w, h, conf]; balls: raw ball detections (N, 7), optional."""
+    near = _near_release(persons, track, release, person_every, look_ahead)
+    poss = _possession(persons, track, balls, release, person_every, before) if use_possession else {}
+    cands = list(near) + [t for t in poss if t not in near]      # deterministic order for exact ties
+    if not cands:
         return None, None
-    tid = min(votes, key=lambda t: (np.median(votes[t]), -len(votes[t])))
-    return tid, float(np.median(votes[tid]))
+    # ties (several boxes at distance 0) go to the player seen in more frames
+    tid = min(cands, key=lambda t: (-poss.get(t, 0), near.get(t, (np.inf, 0))[0], -near.get(t, (np.inf, 0))[1]))
+    return tid, near[tid][0] if tid in near else None
 
 
 def shooting_position(persons: np.ndarray, tid: int, release: int, fps: float,
@@ -111,8 +147,8 @@ def free_throw_context(persons: np.ndarray, tid: int, release: int, calibration,
 
 
 def shooter_info(persons: np.ndarray, track: dict, release: int, calibration, court: CourtSpec,
-                 fps: float) -> ShooterInfo:
-    tid, score = find_shooter(persons, track, release)
+                 fps: float, balls: np.ndarray | None = None) -> ShooterInfo:
+    tid, score = find_shooter(persons, track, release, balls=balls)
     if tid is None:
         return ShooterInfo(None, None, None, None, None, None)
     pos = shooting_position(persons, tid, release, fps)

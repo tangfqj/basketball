@@ -42,3 +42,18 @@ release at 50.9 s and "FT success" at 56.1 s; every other referee-release event 
 - Remaining errors: crowded drives (defender overlapping or chosen as shooter). IMG_0107 (purple vs yellow)
   is the weakest video (80%) — to investigate.
 - Target (≥ 90%) is not yet met on the development videos.
+
+## Follow-up: why teams fail on IMG_0107 (80%)
+
+- The colour model is **not** the problem: on the dataset's player boxes it assigns 96.8% of IMG_0107
+  detections correctly (0106: 98.2%, 0108: 95.1%).
+- The errors are **wrong shooters**: in crowded shots the "closest upper body just after release" is often
+  the contesting defender (the ball is already travelling towards the contesting hand).
+- **Negative result — possession before release:** ranking players by how often the ball was inside their
+  box before the release made things worse (zones 97.7% → 93.1–96.0% for windows of 0.2–1 s; teams on
+  IMG_0107 80% → 74%): the defender's box also contains the ball in crowded frames, and longer windows
+  reach back to the passer. Kept as an option (`use_possession`, off).
+- Fragility: several candidate players often tie at distance 0; tie-breaking (prefer the player seen in
+  more frames, deterministic order) changes results by 1–2 shots.
+- Most promising next step: person detection on every frame (now every 3rd) for fewer track fragments
+  and cleaner boxes in crowds — a speed trade-off to decide in Phase 6.
