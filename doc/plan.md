@@ -18,8 +18,8 @@
 | 0 Foundations | Done: skeleton, dataset ingestion, splits, shot labeling tool, evaluation script; IMG_0104 shots labelled |
 | 1 Calibration | Done: tool; IMG_0104 calibrated, IMG_0105–0108 derived by background matching |
 | 2.1 Players | Pretrained detector (93% recall on dataset boxes) + ByteTrack in `hoopstats detect` |
-| 2.2 Ball detector | 573 frames reviewed; `ball_v1` training in Colab; evaluation pending |
-| 2.3 Ball tracking | Tracker + evaluation script done; full-video evaluation pending (run `detect` on the Mac) |
+| 2.2 Ball detector | `ball_v1`: val precision 0.977 / recall 0.971 (target ≥ 0.90 met) |
+| 2.3 Ball tracking | First 30 s of IMG_0104: 10/10 reviewed frames, 3/3 shots fully covered; full-video evaluation pending |
 | 5 Teams | Colour clustering done (96–99% per detection, 12/12 tracks); pipeline wiring waits for player tracks |
 
 ## Guiding principles
