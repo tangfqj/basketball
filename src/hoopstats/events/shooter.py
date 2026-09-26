@@ -45,7 +45,7 @@ def find_shooter(persons: np.ndarray, track: dict, release: int, person_every: i
         for _, tid, x, y, w, h, _ in _persons_at(persons, f):
             if tid < 0:
                 continue
-            hx, hy = x + w / 2, y + 0.15 * h            # hands / head region
+            hx = x + w / 2                               # hands / head region: upper part of the box
             dx = max(0.0, abs(bx - hx) - w / 2)          # inside the box width: no horizontal penalty
             d = np.hypot(dx, max(0.0, by - (y + 0.45 * h)) + max(0.0, (y - 0.4 * h) - by)) / h
             votes.setdefault(int(tid), []).append(d)

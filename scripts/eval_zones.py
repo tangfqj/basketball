@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from hoopstats.calibration import Calibration
-from hoopstats.court import get_court, is_beyond_arc
+from hoopstats.court import get_court
 from hoopstats.detection.runner import load_detections
 from hoopstats.evaluation import match_events
 from hoopstats.events import detect_shots
@@ -63,7 +63,7 @@ def main():
 def _arc_dist(court, x, y):
     """Signed distance to the 3-point line (m): > 0 beyond the arc."""
     d_arc = np.hypot(x, y - court.hoop_y) - court.arc_radius if y > court.arc_break_y else abs(x) - court.corner_x
-    return round(float(d_arc), 2) if is_beyond_arc(court, x, y) == (d_arc > 0) else round(float(d_arc), 2)
+    return round(float(d_arc), 2)
 
 
 if __name__ == "__main__":
