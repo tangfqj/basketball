@@ -125,9 +125,8 @@ accuracy numbers. If ball tracking is insufficient, revisit Phase 2 before conti
 | Similar jersey colors or lighting changes | Team errors | Input requirement IN-6; per-clip clustering |
 | Model licensing | Constraints on code reuse | Decide before Phase 2 (see below) |
 
-## Decisions needed before Phase 2
+## Decisions taken
 
-- **Detector framework / license.** Ultralytics YOLO is AGPL-3.0: acceptable for a personal demo, but if the
-  code may later be closed-source or commercial, choose an Apache-licensed alternative (e.g. YOLOX or an
-  Apache-licensed RT-DETR implementation) from the start.
-- **Target Mac hardware** (requirements open question 1), which decides whether training runs locally or on a cloud GPU.
+- **Detector framework:** Ultralytics YOLO (AGPL-3.0; fine for this demo), decided 2026-09-25.
+- **Hardware:** Mac M2 for development; training and inference on Colab GPUs where useful (requirements v0.4).
+- **Data:** TrackID3x3 Outdoor as the main source (dev IMG_0104–0108, test IMG_0111–0115); Indoor test-only.

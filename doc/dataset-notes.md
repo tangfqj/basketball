@@ -60,7 +60,7 @@
 - **Outdoor** = main dev/test source.
 - **Indoor** = test only, for attempts and make/miss; excluded from team and development/tuning.
 
-## To do
+## Follow-ups (done)
 
-- Count shots per video / clip to size the dev and test sets.
-- Decide on requirement changes (IN-5 frame rate for Indoor, head-on view in IN-4, Indoor's role).
+- Shots per video: 33–38 in IMG_0104–0108 (174 in total) — see the shot labels in `labels/`.
+- Requirement changes: Indoor made test-only (v0.3); head-on view and cloud inference accepted (v0.4).

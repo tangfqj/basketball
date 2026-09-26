@@ -217,15 +217,17 @@ matching is the primary evaluation.
 | NF-4 | Results are deterministic for the same input, calibration, rule set, and model version. |
 | NF-5 | Large binary files (videos, model weights, datasets) are kept out of git. |
 
-## 9. Open questions
+## 9. Open questions — resolved during Milestone 1
 
-1. Target Mac hardware (chip and RAM), which determines whether training runs locally (affects NF-2, NF-3).
-2. Final accuracy targets: the values in 7.3 are proposals to confirm after a first baseline.
-3. Tolerance for minor camera movement (e.g. a tripod bumped mid-video): reject, or re-calibrate by segment?
-4. How to handle shots at the *other* hoop if a video accidentally includes it: ignore for M1?
-5. TrackID3x3 details to verify after download: frame rate; whether the rim is clearly visible from the sideline angle; whether Indoor players wear distinguishable bibs (IN-6); whether each subset uses a single fixed camera position (CAL-4).
-6. Indoor clips are short (a few seconds each), so the Indoor subset may contain only a few dozen shots in total. Is that enough as a second-domain test, or do we need more indoor footage?
-7. Free throws are rare in 3x3; FT detection may need supplementary 5v5 or shooting-practice footage to be evaluated meaningfully.
+1. Hardware: Mac M2 for development; training and inference may use cloud GPUs (NF-1–NF-3, v0.4).
+2. Accuracy targets in §7.3 kept as proposed; results in `doc/milestone1-report.md`.
+3. Camera movement *between* videos is handled by transferring the calibration
+   (`scripts/derive_calibration.py`); movement *within* a video was not observed and is not handled.
+4. Shots at another hoop: not relevant for the TrackID3x3 Outdoor videos (one hoop in view).
+5. TrackID3x3 details: verified in `doc/dataset-notes.md` (Outdoor 29.97 fps, rim visible head-on,
+   static camera; Indoor 20 fps with mixed bib colours).
+6. Indoor: test-only, attempts and make/miss; not evaluated in Milestone 1.
+7. Free throws: 9 in the development videos (all detected); too few for a precise estimate.
 
 ## 10. Possible future milestones
 
