@@ -43,3 +43,16 @@ def test_make_miss_and_rim_bounce():
 def test_rise_that_stays_below_rim_is_not_a_shot():
     pts = flight(50, 1700, 1500, 1750, peak_above=-120)             # apex 120 px *below* the rim: a pass
     assert detect_shots(make_track(200, pts), RIM, RR, FPS) == []
+
+
+def test_learned_make_model_roundtrip(tmp_path):
+    from hoopstats.events.make_model import FEATURES, MakeModel, feature_vector, fit
+
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(80, len(FEATURES)))
+    y = (X[:, 0] < 0).astype(float)                    # "made" when close to the rim centre
+    m = fit(X, y)
+    assert ((m.prob(X) >= 0.5) == (y == 1)).mean() > 0.9
+    m.save(tmp_path / "m.json")
+    assert np.allclose(MakeModel.load(tmp_path / "m.json").prob(X), m.prob(X))
+    assert feature_vector({"crossing": "none"}) is None

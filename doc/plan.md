@@ -20,7 +20,7 @@
 | 2.1 Players | Pretrained detector (93% recall on dataset boxes) + ByteTrack in `hoopstats detect` |
 | 2.2 Ball detector | `ball_v1`: val precision 0.977 / recall 0.971 (target ≥ 0.90 met) |
 | 2.3 Ball tracking | IMG_0104 full video: recall 97% (val 97%), 33/33 shot flights reach the rim — exit criterion met |
-| 3 Shots, make/miss | v1 on IMG_0104 (dev): attempts 33/33 (1 extra, post-game), make/miss 33/33; needs more labelled videos |
+| 3 Shots, make/miss | Attempts 103/103 on unseen 0105–0107; make/miss learned model 95.6% leave-one-video-out (rule v1: 86.8%); final test on 0108 pending |
 | 5 Teams | Colour clustering done (96–99% per detection, 12/12 tracks); pipeline wiring waits for player tracks |
 
 ## Guiding principles

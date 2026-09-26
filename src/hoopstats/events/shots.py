@@ -10,7 +10,8 @@ Shot attempt = an *upward flight* of the ball that
   * either peaks near the basket or comes down close to the rim (far corner shots peak far to the side).
 Release = the first frame of that upward flight (requirements SH-4).
 
-Make/miss (v1, rule-based; features are kept for a learned classifier later):
+Make/miss: a learned classifier (events/make_model.py, models/make_model.json) when given; otherwise
+rule v1:
   * the ball crosses the rim level *downwards* close to the rim centre (|dx| small),
   * keeps falling through the net region below the rim, either staying under the rim or visibly braked
     by the net (horizontal speed drops sharply — angled entries drift sideways through the net),
@@ -84,7 +85,9 @@ def _speed(v: np.ndarray, valid: np.ndarray, f0: int, f1: int) -> float | None:
 
 
 def detect_shots(track: dict, rim_center: tuple[float, float], rim_radius: float, fps: float,
-                 params: ShotParams | None = None) -> list[ShotCandidate]:
+                 params: ShotParams | None = None, make_model=None) -> list[ShotCandidate]:
+    """`make_model` (events.make_model.MakeModel): learned make/miss decision replacing rule v1 for shots
+    with a rim-level crossing."""
     p = params or ShotParams()
     x, y, size, state = track["x"], track["y"], track["size"], track["state"]
     valid = state > 0
@@ -133,13 +136,26 @@ def detect_shots(track: dict, rim_center: tuple[float, float], rim_radius: float
             braked = vx_in is not None and vx_out is not None and abs(vx_in) > 4 and abs(vx_out) <= p.brake_ratio * abs(vx_in)
             through = bool(deep) and (under_rim or braked)
             bounce = any(ry - y[f] >= p.bounce_rr * rr for f in win)
+            vy_in = _speed(y, valid, cross - 6, cross)
+            vy_out = _speed(y, valid, cross + 3, cross + 12)
+            det_after = [f for f in range(cross + 1, min(len(y), cross + 16)) if state[f] == 1]
             feats.update(dx_cross_rr=dx_cross / rr, through_net=through, bounced_up=bounce, under_rim=under_rim,
-                         vx_in=vx_in, vx_out=vx_out,
+                         vx_in=vx_in, vx_out=vx_out, vy_in=vy_in, vy_out=vy_out,
+                         detected_after=len(det_after),
+                         max_dy_after_rr=float(max((y[f] - ry for f in win), default=np.nan) / rr),
                          size_ratio=float(size[cross] / expected_size) if np.isfinite(size[cross]) else None,
                          cross_interpolated=bool(state[cross] == 2))
             inside = abs(dx_cross) <= p.make_dx_rr * rr
             made = inside and through and not bounce
             # crude confidence: distance from the decision boundary of the main feature
             conf = float(min(1.0, abs(abs(dx_cross) / rr - p.make_dx_rr) / p.make_dx_rr + 0.3))
+        if make_model is not None and cross is not None:
+            from .make_model import feature_vector
+
+            fv = feature_vector(feats)
+            if fv is not None:
+                prob = float(make_model.prob(fv[None])[0])
+                made, conf = prob >= make_model.threshold, abs(prob - 0.5) * 2
+                feats["make_prob"] = prob
         shots.append(ShotCandidate(int(s), int(apex), None if cross is None else int(cross), made, conf, feats))
     return shots

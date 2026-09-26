@@ -16,6 +16,7 @@ import numpy as np
 
 from hoopstats.evaluation import evaluate
 from hoopstats.events import detect_shots
+from hoopstats.events.make_model import MakeModel
 from hoopstats.outputs import read_events_csv, write_events_csv
 from hoopstats.schema import ShotEvent, Team, Zone
 
@@ -26,6 +27,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("video")
     ap.add_argument("--cache-dir", default="cache")
+    ap.add_argument("--make-model", default="models/make_model.json", help="'' = rule v1")
     ap.add_argument("--track", help="ball_track.npz (default: cache/<video>/ball_track.npz)")
     ap.add_argument("--max-frame", type=int, default=None, help="only frames processed so far")
     a = ap.parse_args()
@@ -35,7 +37,8 @@ def main():
         tr = {k: v[:n] for k, v in tr.items()}
     cal = json.loads(Path(f"calib/{a.video}.json").read_text())
     rr = abs(cal["rim_edge"][1][0] - cal["rim_edge"][0][0]) / 2
-    shots = detect_shots(tr, cal["rim_center"], rr, FPS)
+    mm = MakeModel.load(a.make_model) if a.make_model and Path(a.make_model).exists() else None
+    shots = detect_shots(tr, cal["rim_center"], rr, FPS, make_model=mm)
 
     pred = [ShotEvent(i, s.release_frame / FPS, s.release_frame, Team.UNKNOWN, Zone.INSIDE_ARC, s.made,
                       confidence=s.confidence) for i, s in enumerate(shots)]
