@@ -20,3 +20,4 @@ One-off and evaluation scripts. Library code lives in `src/hoopstats/`; run with
 | `eval_zones.py` | Shooter position / zone vs. labels | Phase 4 |
 | `eval_team_clustering.py` | Team colour clustering vs. TrackID3x3 player boxes | Phase 5, `2026-09-25-team-clustering` |
 | `eval_shot_teams.py` | Team per shot vs. labels | Phase 5 |
+| `probe_bibs.py` | Contact sheets of dataset player crops with bib numbers (legibility check) | M2 step 0, `2026-09-27-bib-probe` |
