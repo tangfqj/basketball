@@ -65,6 +65,15 @@ def _cmd_ball_review(a: argparse.Namespace) -> None:
     run_ball_review(a.videos or None, port=a.port, open_browser=not a.no_browser)
 
 
+def _cmd_bib_crops(a: argparse.Namespace) -> None:
+    import json
+
+    from .training.bib_dataset import build_bib_crops
+
+    for v in a.videos:
+        print(json.dumps(build_bib_crops(v, a.out, every=a.every, start=a.start, end=a.end)), flush=True)
+
+
 def _cmd_ball_dataset(a: argparse.Namespace) -> None:
     import json
 
@@ -155,6 +164,14 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--out", default="data/ball_dataset")
     s.add_argument("--labels-dir", default="labels/ball")
     s.set_defaults(func=_cmd_ball_dataset)
+
+    s = sub.add_parser("bib-crops", help="torso crops labeled with bib numbers from TrackID3x3 boxes (bib reader)")
+    s.add_argument("videos", nargs="+", help="video files, e.g. data/outdoor/IMG_0104.MOV")
+    s.add_argument("--out", default="data/bib_crops")
+    s.add_argument("--every", type=int, default=8, help="use every N-th frame")
+    s.add_argument("--start", type=int, default=0, help="first frame (0-based)")
+    s.add_argument("--end", type=int, help="stop before this frame")
+    s.set_defaults(func=_cmd_bib_crops)
 
     s = sub.add_parser("detect", help="run ball + player detection over a video (cached, resumable)")
     s.add_argument("video")

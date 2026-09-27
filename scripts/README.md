@@ -24,3 +24,4 @@ One-off and evaluation scripts. Library code lives in `src/hoopstats/`; run with
 | `propose_shooters.py` | Pre-fill the shooter of each labeled shot from dataset boxes; crops for `hoopstats shooter-review` | M2 step 1 |
 | `eval_shooters.py` | Shooter accuracy vs. reviewed shooter labels (`--errors` lists misses) | M2 step 2 |
 | `shooter_ranker_experiment.py` | Learned candidate ranking for the shooter (negative result) | M2 step 2, `2026-09-27-shooter-accuracy` |
+| `train_bib_reader.py` | Train / evaluate the bib reader, one leave-one-video-out fold per run (used by `notebooks/train_bib_reader.ipynb`) | M2 step 3 |

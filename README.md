@@ -26,7 +26,7 @@ The ML dependencies (PyTorch, detector) are added in Phase 2: `uv sync --extra m
 
 ```
 src/hoopstats/
-  cli.py              command line: analyze, evaluate, detect, track-ball, calibrate, label, ball-review, shooter-review, ball-dataset, probe, proxy
+  cli.py              command line: analyze, evaluate, detect, track-ball, calibrate, label, ball-review, shooter-review, bib-crops, ball-dataset, probe, proxy
   pipeline.py         detect -> track ball -> shots + make/miss -> shooter / zone / team -> outputs
   render.py           annotated output video
   schema.py           ShotEvent, Zone, Team
@@ -43,7 +43,7 @@ src/hoopstats/
   datasets/           TrackID3x3 loaders
   labeling/           browser tools: shot labeling, ball-box review
   training/           training-data export (ball dataset)
-notebooks/            Colab: ball-detector training; whole pipeline on a cloud GPU
+notebooks/            Colab: ball-detector training; whole pipeline on a cloud GPU; bib-reader training
 configs/              dataset splits (dev / test)
 labels/               hand-labeled shot events and ball boxes (committed)
 models/               make/miss model (committed; detector weights live in data/models/)
