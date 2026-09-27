@@ -10,6 +10,11 @@ derived purely from the pixels. Demo project — see [`doc/requirements.md`](doc
 [`doc/milestone1-report.md`](doc/milestone1-report.md). On 5 labelled videos: shots found 100%, precision
 97.8%, make/miss 97.1% (97.4% on the untouched IMG_0108), zone 97.7%, team 89.7%.
 
+**Milestone 2 wrapped up** (per-player shots by bib number) — [`doc/milestone2-report.md`](doc/milestone2-report.md).
+Shots credited to the right player (team + bib): 83.3% on the same videos (bib reader 99.3% per crop; the main
+error is picking the contesting defender as the shooter). New outputs: `players.csv`, shooter box with
+team + number in the annotated video.
+
 ## Setup (macOS, Apple Silicon)
 
 ```bash

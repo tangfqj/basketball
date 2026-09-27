@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Approved v0.1 |
+| **Status** | Wrapped up (see [milestone2-report.md](milestone2-report.md)) |
 | **Related** | [requirements.md §11](requirements.md), [plan.md](plan.md) (Milestone 1) |
 | **Last updated** | 2026-09-27 |
 
@@ -15,7 +15,7 @@
 | 2 Shooter accuracy | **89.1%** with the M1 rule; learned ranking tried, worse (85.6%); see `2026-09-27-shooter-accuracy.md` |
 | 3 Bib reader | **Done.** 99.3% per crop, 99.85% per 3-s window (roster vote), leave-one-video-out; partly recognises players (same bibs recur) — see `2026-09-27-bib-reader-v1.md` |
 | 4 Identity assignment + pipeline | **Done.** Player 83.3% on dev (target 85%), team 87.9%; 2/3 of errors are wrong shooters. Annotated video shows shooter box + `A #10`. See `2026-09-27-players-dev.md` |
-| 5 Held-out test + report | – |
+| 5 Held-out test + report | Report written (`milestone2-report.md`); held-out test **not run** (wrapped up at 83.3% dev) |
 
 ## Idea
 
