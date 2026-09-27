@@ -10,8 +10,8 @@
 
 | Step | Status |
 |---|---|
-| 0 Bib legibility probe | In progress |
-| 1 Shooter ground truth | – |
+| 0 Bib legibility probe | **Done — go.** Numbers legible front and back; see `doc/experiments/2026-09-27-bib-probe.md` |
+| 1 Shooter ground truth | Next |
 | 2 Shooter accuracy | – |
 | 3 Bib reader | – |
 | 4 Identity assignment + pipeline | – |
