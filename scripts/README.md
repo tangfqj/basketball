@@ -22,3 +22,5 @@ One-off and evaluation scripts. Library code lives in `src/hoopstats/`; run with
 | `eval_shot_teams.py` | Team per shot vs. labels | Phase 5 |
 | `probe_bibs.py` | Contact sheets of dataset player crops with bib numbers (legibility check) | M2 step 0, `2026-09-27-bib-probe` |
 | `propose_shooters.py` | Pre-fill the shooter of each labeled shot from dataset boxes; crops for `hoopstats shooter-review` | M2 step 1 |
+| `eval_shooters.py` | Shooter accuracy vs. reviewed shooter labels (`--errors` lists misses) | M2 step 2 |
+| `shooter_ranker_experiment.py` | Learned candidate ranking for the shooter (negative result) | M2 step 2, `2026-09-27-shooter-accuracy` |

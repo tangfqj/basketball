@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+from eval_shooters import GT_ROOT, gt_player_of_track
 
 from hoopstats.calibration import Calibration
 from hoopstats.datasets.trackid3x3 import load_mot
@@ -26,8 +27,6 @@ from hoopstats.events.shooter import _near_release, find_shooter
 from hoopstats.outputs import read_events_csv
 from hoopstats.pipeline import RELEASE_SHIFT_S
 from hoopstats.schema import ShotEvent, Team, Zone
-
-from eval_shooters import GT_ROOT, gt_player_of_track
 
 FPS = 30000 / 1001
 FEATS = ["d_near", "d_late", "d_min", "poss_short", "poss_long", "ball_above", "x_off", "jump", "rel_h", "rank_near"]
@@ -58,7 +57,7 @@ def features(persons, tr, balls, r):
     order = sorted(cands, key=lambda t: near9.get(t, (9.0, 0))[0])
     for t in cands:
         tb = persons[persons[:, 1] == t]
-        def box(f):
+        def box(f, tb=tb):
             s = tb[np.abs(tb[:, 0] - f) <= 1]
             return s[0] if len(s) else None
         d_late, d_all, above, xoff = [], [], [], []

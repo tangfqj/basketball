@@ -11,8 +11,8 @@
 | Step | Status |
 |---|---|
 | 0 Bib legibility probe | **Done — go.** Numbers legible front and back; see `doc/experiments/2026-09-27-bib-probe.md` |
-| 1 Shooter ground truth | Pre-filled (174 shots); review tool `hoopstats shooter-review`; waiting for review |
-| 2 Shooter accuracy | – |
+| 1 Shooter ground truth | **Done.** 174 shots reviewed (19 proposals corrected) |
+| 2 Shooter accuracy | **89.1%** with the M1 rule; learned ranking tried, worse (85.6%); see `2026-09-27-shooter-accuracy.md` |
 | 3 Bib reader | – |
 | 4 Identity assignment + pipeline | – |
 | 5 Held-out test + report | – |
