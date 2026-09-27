@@ -1,12 +1,13 @@
-# Basketball Shot Analytics — Requirements (Milestone 1)
+# Basketball Shot Analytics — Requirements (Milestones 1–2)
 
 | | |
 |---|---|
-| **Status** | Draft v0.4 |
+| **Status** | Draft v0.5 |
 | **Owner** | Kevin |
-| **Last updated** | 2026-09-23 |
+| **Last updated** | 2026-09-27 |
 
 **Changelog**
+- v0.5 — Milestone 2 added (§11): per-player shot counts, players identified by team + bib number within one video.
 - v0.4 — Inference may run in the cloud (NF-1–NF-3); speed target applies to the machine used.
 - v0.3 — Indoor subset restricted to test-only (attempts, make/miss).
 - v0.2 — Adopted the TrackID3x3 dataset (Indoor + Outdoor) as the primary data source. Added scoring
@@ -37,7 +38,7 @@ or any other overlaid text is explicitly out of scope as a source of truth.
 - Broadcast / TV footage (moving camera, cuts, replays, graphics).
 - Moving-camera footage, including drone footage (e.g. the TrackID3x3 Drone subset).
 - Scoreboard OCR or any use of on-screen text.
-- Per-player statistics, jersey-number recognition, player re-identification.
+- Per-player statistics, jersey-number recognition, player re-identification (added in Milestone 2, §11).
 - Rebounds, assists, steals, blocks, turnovers, fouls.
 - Full-court footage with two hoops.
 - Real-time / streaming processing.
@@ -233,6 +234,47 @@ matching is the primary evaluation.
 
 - Automatic hoop and court calibration.
 - Rebounds (offensive / defensive) and possession tracking.
-- Per-player statistics via tracking and jersey-number recognition (TrackID3x3 jersey annotations can help).
 - Full-court, drone, and broadcast footage.
 - Shot charts and heat maps.
+
+## 11. Milestone 2 — per-player shot counts (v0.5)
+
+Milestone 2 extends Milestone 1 from per-team to **per-player** statistics. Everything in §3–§8
+still applies unless changed here.
+
+### 11.1 Scope
+
+| ID | Requirement |
+|---|---|
+| PL-1 | Each shot attempt is attributed to an individual **player**, identified by **team + bib number** (e.g. `A #10`). |
+| PL-2 | Player identity is resolved **within one video**. The same person in different videos is not linked. |
+| PL-3 | Per player: attempts, makes, FG% and points (by the selected rule set, §5.5). Zone split and shot charts are not required. |
+| PL-4 | The set of players is closed per video: in the TrackID3x3 Outdoor videos, 3 players per team are on court. The system may use this. |
+| PL-5 | A shot whose shooter's bib cannot be read is still counted for the team and reported under `#?` for that team. |
+
+Out of scope for M2: linking players across videos, player names, substitutions onto the court
+beyond the 6 starting players, rebounds / assists.
+
+### 11.2 Outputs (additions to §6)
+
+| ID | Output | Description |
+|---|---|---|
+| OUT-5 | `events.csv` | New column `player` (bib number, or `?`) and `shooter_track` (internal track ID). |
+| OUT-6 | `players.csv` | One row per player: `team, number, attempts, makes, fg_pct, points`. |
+| OUT-7 | `stats.json` | New `players` section with the same numbers. |
+
+### 11.3 Ground truth and metrics
+
+| ID | Requirement |
+|---|---|
+| PGT-1 | The shooter of each labeled shot is stored as the TrackID3x3 track ID and bib number. It is pre-filled from the dataset player boxes nearest the ball at release and **reviewed by hand**. |
+| PGT-2 | Bib numbers per track come from the dataset (`delimitation_frames`: track ID → jersey number). These provide labeled torso crops for training and component metrics. |
+| PGT-3 | Training uses development videos only (§7.2, `configs/splits.yaml`); test videos stay untouched. |
+
+| Metric | Definition | Target |
+|---|---|---|
+| Player accuracy (primary) | matched attempts credited to the correct team + bib number (`#?` counts as wrong) | ≥ 85% (dev) |
+| Shooter accuracy (diagnostic) | matched attempts whose predicted shooter box is the GT shooter | reported |
+| Bib accuracy per track (diagnostic) | tracks assigned the correct number, weighted by length | ≥ 90% |
+| Crop-level bib accuracy (diagnostic) | per torso crop: correct number or correctly "unreadable" | reported |
+| Per-player count error | \|predicted − GT attempts\| and makes per player per video | reported |
