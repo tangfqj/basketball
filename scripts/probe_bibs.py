@@ -10,15 +10,13 @@ from __future__ import annotations
 
 import argparse
 import subprocess
-import sys
 from collections import defaultdict
 from pathlib import Path
 
 import cv2
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hoopstats.datasets.trackid3x3 import load_delimitation, load_mot, team_membership  # noqa: E402
+from hoopstats.datasets.trackid3x3 import load_delimitation, load_mot, team_membership
 
 GT_ROOT = Path("data/trackid3x3_repo/ground_truth/Outdoor")
 FPS = 30000 / 1001

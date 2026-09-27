@@ -26,7 +26,7 @@ The ML dependencies (PyTorch, detector) are added in Phase 2: `uv sync --extra m
 
 ```
 src/hoopstats/
-  cli.py              command line: analyze, evaluate, detect, track-ball, calibrate, label, ball-review, ball-dataset, probe, proxy
+  cli.py              command line: analyze, evaluate, detect, track-ball, calibrate, label, ball-review, shooter-review, ball-dataset, probe, proxy
   pipeline.py         detect -> track ball -> shots + make/miss -> shooter / zone / team -> outputs
   render.py           annotated output video
   schema.py           ShotEvent, Zone, Team
@@ -67,6 +67,7 @@ uv run python scripts/make_colab_bundle.py      # cloud run: see notebooks/run_p
 uv run hoopstats label data/outdoor/IMG_0104.MOV       # label shots in the browser
 uv run hoopstats calibrate data/outdoor/IMG_0104.MOV --init trackid3x3-outdoor   # court + rim
 uv run hoopstats ball-review                           # review ball boxes, see doc/ball-labeling-guide.md
+uv run hoopstats shooter-review                        # review the shooter of each labeled shot (Milestone 2)
 uv run hoopstats ball-dataset                          # -> data/ball_dataset.zip for Colab training
 uv run hoopstats probe data/outdoor/*.MOV
 uv run hoopstats proxy data/outdoor/IMG_0104.MOV cache/IMG_0104/proxy_1080.mp4
