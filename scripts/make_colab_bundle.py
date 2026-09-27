@@ -13,7 +13,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-WEIGHTS = ["data/models/ball_v1.pt", "data/models/yolo11s.pt"]
+WEIGHTS = ["data/models/ball_v1.pt", "data/models/yolo11s.pt", "data/models/bib_v1.pt"]
 # TrackID3x3 ground truth used on Colab (bib reader crops): dev-video player boxes + all game-flow files
 GT = Path("data/trackid3x3_repo/ground_truth/Outdoor")
 GT_MOT_VIDEOS = ["IMG_0104", "IMG_0105", "IMG_0106", "IMG_0107", "IMG_0108", "IMG_0109", "IMG_0110"]   # dev split
