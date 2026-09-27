@@ -1,0 +1,247 @@
+{
+ "0": {
+  "status": "ok",
+  "track": 7,
+  "number": 9,
+  "team": "A",
+  "proposed": 7
+ },
+ "1": {
+  "status": "ok",
+  "track": 2,
+  "number": 5,
+  "team": "B",
+  "proposed": 2
+ },
+ "2": {
+  "status": "ok",
+  "track": 8,
+  "number": 6,
+  "team": "A",
+  "proposed": 8
+ },
+ "3": {
+  "status": "ok",
+  "track": 8,
+  "number": 6,
+  "team": "A",
+  "proposed": 8
+ },
+ "4": {
+  "status": "ok",
+  "track": 7,
+  "number": 9,
+  "team": "A",
+  "proposed": 7
+ },
+ "5": {
+  "status": "ok",
+  "track": 10,
+  "number": 1,
+  "team": "B",
+  "proposed": 10
+ },
+ "6": {
+  "status": "ok",
+  "track": 1,
+  "number": 11,
+  "team": "A",
+  "proposed": 1
+ },
+ "7": {
+  "status": "ok",
+  "track": 10,
+  "number": 1,
+  "team": "B",
+  "proposed": 10
+ },
+ "8": {
+  "status": "ok",
+  "track": 1,
+  "number": 11,
+  "team": "A",
+  "proposed": 1
+ },
+ "9": {
+  "status": "ok",
+  "track": 10,
+  "number": 1,
+  "team": "B",
+  "proposed": 10
+ },
+ "10": {
+  "status": "ok",
+  "track": 1,
+  "number": 11,
+  "team": "A",
+  "proposed": 1
+ },
+ "11": {
+  "status": "ok",
+  "track": 1,
+  "number": 11,
+  "team": "A",
+  "proposed": 1
+ },
+ "12": {
+  "status": "ok",
+  "track": 2,
+  "number": 5,
+  "team": "B",
+  "proposed": 2
+ },
+ "13": {
+  "status": "ok",
+  "track": 8,
+  "number": 6,
+  "team": "A",
+  "proposed": 8
+ },
+ "14": {
+  "status": "ok",
+  "track": 10,
+  "number": 1,
+  "team": "B",
+  "proposed": 1
+ },
+ "15": {
+  "status": "ok",
+  "track": 7,
+  "number": 9,
+  "team": "A",
+  "proposed": 7
+ },
+ "16": {
+  "status": "ok",
+  "track": 10,
+  "number": 1,
+  "team": "B",
+  "proposed": 10
+ },
+ "17": {
+  "status": "ok",
+  "track": 1,
+  "number": 11,
+  "team": "A",
+  "proposed": 1
+ },
+ "18": {
+  "status": "ok",
+  "track": 1,
+  "number": 11,
+  "team": "A",
+  "proposed": 1
+ },
+ "19": {
+  "status": "ok",
+  "track": 5,
+  "number": 3,
+  "team": "B",
+  "proposed": 5
+ },
+ "20": {
+  "status": "ok",
+  "track": 1,
+  "number": 11,
+  "team": "A",
+  "proposed": 1
+ },
+ "21": {
+  "status": "ok",
+  "track": 10,
+  "number": 1,
+  "team": "B",
+  "proposed": 10
+ },
+ "22": {
+  "status": "ok",
+  "track": 5,
+  "number": 3,
+  "team": "B",
+  "proposed": 5
+ },
+ "23": {
+  "status": "ok",
+  "track": 10,
+  "number": 1,
+  "team": "B",
+  "proposed": 10
+ },
+ "24": {
+  "status": "ok",
+  "track": 7,
+  "number": 9,
+  "team": "A",
+  "proposed": 7
+ },
+ "25": {
+  "status": "ok",
+  "track": 10,
+  "number": 1,
+  "team": "B",
+  "proposed": 10
+ },
+ "26": {
+  "status": "ok",
+  "track": 1,
+  "number": 11,
+  "team": "A",
+  "proposed": 1
+ },
+ "27": {
+  "status": "ok",
+  "track": 1,
+  "number": 11,
+  "team": "A",
+  "proposed": 1
+ },
+ "28": {
+  "status": "ok",
+  "track": 8,
+  "number": 6,
+  "team": "A",
+  "proposed": 8
+ },
+ "29": {
+  "status": "ok",
+  "track": 10,
+  "number": 1,
+  "team": "B",
+  "proposed": 10
+ },
+ "30": {
+  "status": "ok",
+  "track": 10,
+  "number": 1,
+  "team": "B",
+  "proposed": 10
+ },
+ "31": {
+  "status": "ok",
+  "track": 8,
+  "number": 6,
+  "team": "A",
+  "proposed": 8
+ },
+ "32": {
+  "status": "ok",
+  "track": 7,
+  "number": 9,
+  "team": "A",
+  "proposed": 7
+ },
+ "33": {
+  "status": "ok",
+  "track": 5,
+  "number": 3,
+  "team": "B",
+  "proposed": 5
+ },
+ "34": {
+  "status": "ok",
+  "track": 10,
+  "number": 1,
+  "team": "B",
+  "proposed": 10
+ }
+}
