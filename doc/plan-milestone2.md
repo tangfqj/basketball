@@ -15,7 +15,6 @@
 | 2 Shooter accuracy | **89.1%** with the M1 rule; learned ranking tried, worse (85.6%); see `2026-09-27-shooter-accuracy.md` |
 | 3 Bib reader | **Done.** 99.3% per crop, 99.85% per 3-s window (roster vote), leave-one-video-out; partly recognises players (same bibs recur) — see `2026-09-27-bib-reader-v1.md` |
 | 4 Identity assignment + pipeline | **Done.** Player 83.3% on dev (target 85%), team 87.9%; 2/3 of errors are wrong shooters. Annotated video shows shooter box + `A #10`. See `2026-09-27-players-dev.md` |
-| 5 Report | **Done.** `milestone2-report.md` (held-out validation dropped by decision, 2026-09-27) |
 
 ## Idea
 
