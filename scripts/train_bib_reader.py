@@ -11,6 +11,7 @@ Outputs in --out/<run>/: weights (best.pt), preds_<held>.csv, metrics_<held>.jso
 from __future__ import annotations
 
 import argparse
+import collections
 import csv
 import json
 import os
@@ -30,7 +31,13 @@ def read_index(crops: Path, videos: list[str]) -> list[dict]:
                 r["number"], r["frame"], r["track"] = int(r["number"]), int(r["frame"]), int(r["track"])
                 r["path"] = str((crops / v / r["file"]).resolve())
                 rows.append(r)
-    return rows
+    # the dataset has a few frames with two boxes under one track id (IMG_0105): both rows point to the same
+    # file, and it is unknown which box it shows -> drop them
+    n = collections.Counter(r["path"] for r in rows)
+    dup = sum(k > 1 for k in n.values())
+    if dup:
+        print(f"dropping {dup} ambiguous crops (two boxes with one track id in the ground truth)")
+    return [r for r in rows if n[r["path"]] == 1]
 
 
 def build_split(rows, held, classes, root: Path, max_occl: float, val_frac: float) -> dict:

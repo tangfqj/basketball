@@ -108,8 +108,9 @@ def build_bib_crops(video: str | Path, out_root: str | Path = "data/bib_crops", 
     for f, img in _frames(video, every, start, end, info.width, info.height):
         frames += 1
         here = boxes.get(f, [])
+        ids = [t for t, _ in here]
         for tid, b in here:
-            if tid not in jersey or b[3] < MIN_BOX_H:
+            if tid not in jersey or b[3] < MIN_BOX_H or ids.count(tid) > 1:   # >1: ambiguous GT (IMG_0105)
                 continue
             crop = crop_torso(img, b)
             if crop is None:
