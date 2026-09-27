@@ -13,7 +13,7 @@
 | 0 Bib legibility probe | **Done — go.** Numbers legible front and back; see `doc/experiments/2026-09-27-bib-probe.md` |
 | 1 Shooter ground truth | **Done.** 174 shots reviewed (19 proposals corrected) |
 | 2 Shooter accuracy | **89.1%** with the M1 rule; learned ranking tried, worse (85.6%); see `2026-09-27-shooter-accuracy.md` |
-| 3 Bib reader | Crops + training notebook ready (`notebooks/train_bib_reader.ipynb`); waiting for the Colab run |
+| 3 Bib reader | **Done.** 99.3% per crop, 99.85% per 3-s window (roster vote), leave-one-video-out; partly recognises players (same bibs recur) — see `2026-09-27-bib-reader-v1.md` |
 | 4 Identity assignment + pipeline | – |
 | 5 Held-out test + report | – |
 
