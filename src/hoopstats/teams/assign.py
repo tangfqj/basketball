@@ -103,10 +103,12 @@ def _overlap_frac(box, others) -> float:
 
 
 def shot_team(cap: cv2.VideoCapture, persons: np.ndarray, tid: int, release: int, model, bg,
-              before: int = 45, after: int = 15, step: int = 3, max_overlap: float = 0.15) -> tuple[str, list[str]]:
+              before: int = 45, after: int = 15, step: int = 3, max_overlap: float = 0.15,
+              on_view=None) -> tuple[str, list[str]]:
     """Team of the shooter from their own box around the release. Only views where the shooter is not
     overlapped by another player vote (a defender in front mixes both bibs into the torso crop); if there
-    are none, all views vote."""
+    are none, all views vote. `on_view(frame_index, full_res_frame, box_xywh, overlap)` is called for every
+    view (used to read the bib from the same decoded frames)."""
     rows = persons[(persons[:, 1] == tid) & (persons[:, 0] >= release - before) & (persons[:, 0] <= release + after)]
     wanted = {}
     for r in rows:
@@ -124,8 +126,10 @@ def shot_team(cap: cv2.VideoCapture, persons: np.ndarray, tid: int, release: int
         if f not in wanted or (f - f0) % step:
             continue
         _, img = cap.retrieve()
-        img = cv2.resize(img, (img.shape[1] // 2, img.shape[0] // 2), interpolation=cv2.INTER_AREA)
         (_, _, x, y, w, h, _), ov = wanted[f]
+        if on_view is not None:
+            on_view(f, img, (x, y, w, h), ov)
+        img = cv2.resize(img, (img.shape[1] // 2, img.shape[0] // 2), interpolation=cv2.INTER_AREA)
         feat, frac = color_feature(torso_crop(img, (x * SCALE, y * SCALE, w * SCALE, h * SCALE)), bg)
         lab = model.predict(feat, frac)
         all_views.append(lab)

@@ -14,7 +14,7 @@
 | 1 Shooter ground truth | **Done.** 174 shots reviewed (19 proposals corrected) |
 | 2 Shooter accuracy | **89.1%** with the M1 rule; learned ranking tried, worse (85.6%); see `2026-09-27-shooter-accuracy.md` |
 | 3 Bib reader | **Done.** 99.3% per crop, 99.85% per 3-s window (roster vote), leave-one-video-out; partly recognises players (same bibs recur) — see `2026-09-27-bib-reader-v1.md` |
-| 4 Identity assignment + pipeline | – |
+| 4 Identity assignment + pipeline | **Done.** Player 83.3% on dev (target 85%), team 87.9%; 2/3 of errors are wrong shooters. Annotated video shows shooter box + `A #10`. See `2026-09-27-players-dev.md` |
 | 5 Held-out test + report | – |
 
 ## Idea
@@ -53,7 +53,7 @@ The bib problem is simpler than general number recognition:
 | 1 | Pre-fill shooter track + number for the 174 dev shots from dataset boxes; review tool. | `labels/*.csv` with `shooter_id`, `shooter_number` | Review (~20–30 min) |
 | 2 | Shooter accuracy of the M1 rule; fix the main error modes. | Experiment note | – |
 | 3 | Crop dataset builder; train bib classifier (Colab); crop-level and track-level metrics. | `models/bib_v1`, notebook | Run notebook |
-| 4 | Roster, track → number, shot → player; wire into `hoopstats analyze` and `evaluate`. | Pipeline + dev results | – |
+| 4 | Roster, track → number, shot → player; wire into `hoopstats analyze` and `evaluate`; shooter box + player in the annotated video (added on request). | Pipeline + dev results | – |
 | 5 | Label and run the held-out test (IMG_0111–0115, also closes the M1 test); report. | `doc/milestone2-report.md` | Label test shots |
 
 ## Fallback

@@ -27,8 +27,8 @@ The ML dependencies (PyTorch, detector) are added in Phase 2: `uv sync --extra m
 ```
 src/hoopstats/
   cli.py              command line: analyze, evaluate, detect, track-ball, calibrate, label, ball-review, shooter-review, bib-crops, ball-dataset, probe, proxy
-  pipeline.py         detect -> track ball -> shots + make/miss -> shooter / zone / team -> outputs
-  render.py           annotated output video
+  pipeline.py         detect -> track ball -> shots + make/miss -> shooter / zone / team / player -> outputs
+  render.py           annotated output video (shooter box with team + bib number)
   schema.py           ShotEvent, Zone, Team
   rules.py            5v5 / 3x3 points
   court.py            court standards, zone classification (court coordinates in metres)
@@ -37,16 +37,17 @@ src/hoopstats/
   tracking/           ball tracking (one ball per frame, gap filling)
   events/             shot detection, make/miss model, shooter, zone / free throw
   teams/              bib-colour team clustering, team per shot
-  outputs.py          events.csv, stats.json
+  players/            bib reader per shot, roster per team, per-player table (Milestone 2)
+  outputs.py          events.csv, stats.json, players.csv
   evaluation.py       event matching and metrics
   video.py            ffprobe / ffmpeg helpers
   datasets/           TrackID3x3 loaders
-  labeling/           browser tools: shot labeling, ball-box review
-  training/           training-data export (ball dataset)
+  labeling/           browser tools: shot labeling, ball-box review, shooter review
+  training/           training-data export (ball dataset, bib crops) and bib-reader metrics
 notebooks/            Colab: ball-detector training; whole pipeline on a cloud GPU; bib-reader training
 configs/              dataset splits (dev / test)
-labels/               hand-labeled shot events and ball boxes (committed)
-models/               make/miss model (committed; detector weights live in data/models/)
+labels/               hand-labeled shot events, ball boxes and shooters (committed)
+models/               make/miss model (committed; detector and bib-reader weights live in data/models/)
 calib/                per-video calibration (committed)
 tests/                unit tests
 doc/                  requirements, plan, dataset notes
@@ -57,7 +58,8 @@ data/                 videos and datasets (git-ignored)
 
 ```bash
 # the whole pipeline (detection is cached; first run on a new video: ~45 min on an M2, ~20 min on a Colab A100)
-uv run hoopstats analyze data/outdoor/IMG_0104.MOV --out out/IMG_0104              # events.csv, stats.json, run_log.json
+uv run hoopstats analyze data/outdoor/IMG_0104.MOV --out out/IMG_0104              # events.csv, stats.json, players.csv, run_log.json
+                                                                     # (players need data/models/bib_v1.pt = bib_final.pt from the bib notebook)
 uv run hoopstats analyze data/outdoor/IMG_0104.MOV --out out/IMG_0104 --render     # + annotated.mp4 (whole video)
 uv run hoopstats analyze data/outdoor/IMG_0104.MOV --out out/IMG_0104 --render-range 60:120   # annotated clip
 uv run hoopstats evaluate --gt labels/IMG_0104.csv --pred out/IMG_0104/events.csv --rules 3x3

@@ -39,6 +39,8 @@ def read_events_csv(path: str | Path) -> list[ShotEvent]:
                 court_x=float(r["court_x"]) if r.get("court_x") else None,
                 court_y=float(r["court_y"]) if r.get("court_y") else None,
                 confidence=float(r.get("confidence") or 1.0),
+                player=r.get("player") or "",
+                shooter_track=int(r["shooter_track"]) if r.get("shooter_track") else None,
             ))
     return out
 
@@ -60,12 +62,30 @@ def aggregate(events: list[ShotEvent], rules: str) -> dict:
         return res
 
     teams = sorted({e.team for e in events}, key=lambda t: t.value)
-    return {
+    out = {
         "rules": rules,
         "teams": {t.value: block([e for e in events if e.team == t]) for t in teams},
         "total": block(events),
     }
+    if any(e.player for e in events):
+        from .players.bib import players_table
+
+        out["players"] = players_table(events)
+    return out
 
 
 def write_stats_json(events: list[ShotEvent], rules: str, path: str | Path) -> None:
     Path(path).write_text(json.dumps(aggregate(events, rules), indent=2))
+
+
+PLAYER_COLUMNS = ["team", "number", "attempts", "makes", "fg_pct", "points"]
+
+
+def write_players_csv(events: list[ShotEvent], path: str | Path) -> None:
+    """One row per player (team + bib number; "?" = bib not readable), requirements OUT-6."""
+    from .players.bib import players_table
+
+    with open(path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=PLAYER_COLUMNS)
+        w.writeheader()
+        w.writerows(players_table(events))

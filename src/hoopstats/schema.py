@@ -34,6 +34,8 @@ class ShotEvent:
     court_x: float | None = None  # metres, court coordinates (see court.py)
     court_y: float | None = None
     confidence: float = 1.0
+    player: str = ""            # bib number of the shooter, "?" if unreadable (Milestone 2, PL-1/PL-5)
+    shooter_track: int | None = None   # internal player track id
 
     def to_row(self) -> dict:
         row = asdict(self)
@@ -45,5 +47,5 @@ class ShotEvent:
 
 EVENT_COLUMNS = [
     "event_id", "timestamp_s", "frame", "team", "zone", "made",
-    "points", "court_x", "court_y", "confidence",
+    "points", "court_x", "court_y", "confidence", "player", "shooter_track",
 ]

@@ -1,4 +1,5 @@
-"""Annotated output video (requirements OUT-3): ball trail, rim, shooter, shot banners, running score.
+"""Annotated output video (requirements OUT-3): ball trail, rim, shooter box with team + bib number, shot
+banners, running score.
 
 Rendered at 1920x1080 and piped into ffmpeg (H.264), so the file plays everywhere.
 """
@@ -42,6 +43,11 @@ def render_video(video, track, persons, events, shots, calibration, out_path: Pa
     for e, sh in zip(events, shots):
         decided = (sh.cross_frame or sh.apex_frame) + int(0.3 * fps)
         windows.append((sh.release_frame, decided, decided + int(1.5 * fps), e))
+    shooter_boxes = {}                  # track id -> {person frame: (x, y, w, h)}
+    wanted = {e.shooter_track for e in events if e.shooter_track is not None}
+    for row in persons:
+        if int(row[1]) in wanted:
+            shooter_boxes.setdefault(int(row[1]), {})[int(row[0])] = tuple(row[2:6])
     rim_c = tuple(int(v * s) for v in calibration.rim_center)
     rim_rx = int(abs(calibration.rim_edge[1][0] - calibration.rim_edge[0][0]) / 2 * s) if calibration.rim_edge else 16
     rim_ry = int(abs(calibration.rim_edge[2][1] - calibration.rim_edge[3][1]) / 2 * s) if len(calibration.rim_edge) >= 4 else 4
@@ -69,11 +75,21 @@ def render_video(video, track, persons, events, shots, calibration, out_path: Pa
             cv2.line(img, p0, p1, (0, 220, 255), 3, cv2.LINE_AA)
         if track["state"][f] > 0:
             cv2.circle(img, (int(track["x"][f] * s), int(track["y"][f] * s)), 16, (0, 220, 255), 3, cv2.LINE_AA)
-        # shot banner + shooter position
+        # shooter box + shot banner
         for e, a, d, b in active:
             col = TEAM_COLORS.get(e.team.value, TEAM_COLORS["?"])
+            who = f"{e.team.value} #{e.player}" if e.player else f"Team {e.team.value}"
+            boxes = shooter_boxes.get(e.shooter_track, {})
+            near = [g for g in boxes if abs(g - f) <= 6]
+            if near and f <= d:                     # follow the shooter until the result is known
+                x, y, w, h = boxes[min(near, key=lambda g: abs(g - f))]
+                p0, p1 = (int(x * s), int(y * s)), (int((x + w) * s), int((y + h) * s))
+                cv2.rectangle(img, p0, p1, col, 4)
+                _put(img, who, (p0[0], max(30, p0[1] - 12)), 0.9, col, 2)
             result = ("MADE" if e.made else "MISSED") if f >= d else "shot..."
-            _put(img, f"Team {e.team.value}  {labels[e.zone]}  {result}", (OUT_W // 2 - 260, 90), 1.4, col, 3)
+            text = f"{who}  {labels[e.zone]}  {result}"
+            (tw, _), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.4, 3)
+            _put(img, text, (OUT_W // 2 - tw // 2, 90), 1.4, col, 3)
         # running score (events up to their decision time)
         score = {"A": 0, "B": 0}
         att = {"A": 0, "B": 0}

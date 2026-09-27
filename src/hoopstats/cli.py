@@ -37,7 +37,7 @@ def _cmd_analyze(a: argparse.Namespace) -> None:
     analyze(RunConfig(video=a.video, calib=a.calib or f"calib/{Path(a.video).stem}.json", out_dir=a.out,
                       rules=a.rules, cache_dir=a.cache_dir, ball_model=a.ball_model, make_model=a.make_model,
                       render=a.render or rng is not None, render_range=rng, batch=a.batch, device=a.device,
-                      workers=a.workers))
+                      workers=a.workers, bib_model=a.bib_model))
 
 
 def _cmd_calibrate(a: argparse.Namespace) -> None:
@@ -200,6 +200,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--out", required=True)
     s.add_argument("--ball-model", default="data/models/ball_v1.pt")
     s.add_argument("--make-model", default="models/make_model.json")
+    s.add_argument("--bib-model", default="data/models/bib_v1.pt", help="bib reader weights ('' = no per-player output)")
     s.add_argument("--render-range", help="render only this part, in seconds, e.g. 60:120 (implies --render)")
     s.add_argument("--batch", type=int, default=1, help="frames per model call during detection (8-16 on a large GPU)")
     s.add_argument("--device", default=None, help="mps / cuda / cpu (default: best available)")

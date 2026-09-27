@@ -39,3 +39,48 @@ def test_evaluate_counts():
     m = evaluate(rows, probs, classes)
     assert m["crops_clean"] == 2 and m["crop_acc_clean"] == 0.5
     assert m["windows"] == 2 and m["window_acc_roster"] == 1.0
+
+
+def _p(*rows):
+    return np.array(rows, dtype=float)
+
+
+def test_rosters_and_numbers():
+    from hoopstats.players.bib import assign_identities, assign_numbers, team_rosters
+
+    numbers = [4, 6, 9, 10]
+    probs = [_p([0.9, 0.1, 0, 0]), _p([0, 0.95, 0.05, 0]), _p([0, 0, 0.1, 0.9]), _p([0.6, 0, 0, 0.4]),
+             _p([0.2, 0.2, 0.3, 0.3])]
+    teams = ["A", "A", "B", "B", "A"]
+    r = team_rosters(probs, teams, k=2)
+    assert sorted(r["A"]) == [0, 1] and sorted(r["B"]) == [0, 3]
+    nums, rosters = assign_numbers(probs, teams, numbers)
+    assert nums == ["4", "6", "10", "4", "?"]     # shot 5: no crop >= 0.5 within roster A {4, 6, 9}
+    assert rosters["A"] == [4, 6, 9]
+    t, n, _ = assign_identities([_p([0, 0, 0.1, 0.9])], ["A"], numbers)
+    assert (t, n) == (["A"], ["10"])                                  # single team: nothing to correct
+    assert assign_numbers([np.zeros((0, 4))], ["A"], numbers)[0] == ["?"]
+
+
+def test_select_views():
+    from hoopstats.players.bib import select_views
+
+    frames, ov = [88, 94, 100, 106, 112, 118], [0.0, 0.0, 0.5, 0.1, 0.9, 0.0]
+    assert select_views(frames, ov, 100, before=12, after=15, max_overlap=0.3).tolist() == [
+        True, True, False, True, False, False]
+    assert select_views(frames, ov, 100, before=0, after=12, max_overlap=0.05).tolist() == [
+        False, False, True, True, True, False]                        # no clean view: all views in the window
+    assert select_views([], [], 100).tolist() == []
+
+
+def test_players_table():
+    from hoopstats.players.bib import players_table
+    from hoopstats.schema import ShotEvent, Team, Zone
+
+    ev = [ShotEvent(0, 1, 30, Team.A, Zone.INSIDE_ARC, True, points=1, player="10"),
+          ShotEvent(1, 2, 60, Team.A, Zone.BEYOND_ARC, False, player="10"),
+          ShotEvent(2, 3, 90, Team.UNKNOWN, Zone.INSIDE_ARC, True, points=1, player="4"),
+          ShotEvent(3, 4, 120, Team.A, Zone.INSIDE_ARC, True, points=1, player="?")]
+    t = players_table(ev)
+    assert [(r["team"], r["number"]) for r in t] == [("A", "10"), ("A", "?"), ("?", "4")]
+    assert t[0] == {"team": "A", "number": "10", "attempts": 2, "makes": 1, "fg_pct": 0.5, "points": 1}

@@ -25,3 +25,5 @@ One-off and evaluation scripts. Library code lives in `src/hoopstats/`; run with
 | `eval_shooters.py` | Shooter accuracy vs. reviewed shooter labels (`--errors` lists misses) | M2 step 2 |
 | `shooter_ranker_experiment.py` | Learned candidate ranking for the shooter (negative result) | M2 step 2, `2026-09-27-shooter-accuracy` |
 | `train_bib_reader.py` | Train / evaluate the bib reader, one leave-one-video-out fold per run (used by `notebooks/train_bib_reader.ipynb`) | M2 step 3 |
+| `eval_players.py` | Player (team + bib) per shot and per-player counts vs. shooter labels | M2 step 4 |
+| `player_identity_experiment.py` | Offline comparison of view windows / team-from-bib rules from `cache/<video>/bib_probs.npz` | M2 step 4, `2026-09-27-players-dev` |
