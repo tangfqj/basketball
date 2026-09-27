@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Wrapped up 2026-09-27 (final held-out test not run) |
+| **Status** | Wrapped up 2026-09-27 |
 | **Related** | [requirements.md §11](requirements.md), [plan-milestone2.md](plan-milestone2.md), [milestone1-report.md](milestone1-report.md) |
 
 ## What the system does
@@ -44,8 +44,8 @@ Each video was scored with a bib model that did not see it in training. Details:
 - **Colour-team errors** remain (team 87.9%); the player is only right when the team is.
 - **The bib reader partly recognises players**, not only digits: the same people wear the same bibs
   across the dataset's videos. Accuracy on players never seen in training is unknown.
-- **Final held-out test (IMG_0111–0115) not run**; it needs shot labels and reviewed shooters for
-  those videos (also still open from Milestone 1).
+- **No held-out test**: validation on IMG_0111–0115 was dropped by decision; all numbers are on the
+  dev videos (with leave-one-video-out for the bib reader).
 - Identity is per video only; substitutions and players beyond the 3 per team are not handled.
 
 ## How to run

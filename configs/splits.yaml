@@ -1,5 +1,5 @@
 # Dataset splits (requirements EV-5, plan step 0.4). Split per video; fixed before any tuning.
-# Test videos are labeled and evaluated only in Phase 6.2 — do not use them for development.
+# Test videos: kept out of training and tuning. (The final test evaluation was dropped by decision, 2026-09-27.)
 
 trackid3x3_outdoor:
   dir: data/outdoor

@@ -45,9 +45,9 @@ Details: `doc/experiments/` (one note per step, including negative results).
 
 - **Team (89.7%)**: in crowded shots the contesting defender is sometimes taken as the shooter. Ranking by
   ball possession was tried and made it worse. Next idea: player detection on every frame (now every 3rd).
-- **Not yet done — final held-out test** on IMG_0111–0115 (requirements EV-5). All zone/team numbers above
-  are development scores; only make/miss has an untouched-video result. IMG_0111 is downloaded and
-  calibrated (`calib/IMG_0111.json`) but not labelled.
+- **No held-out test**: the planned test on IMG_0111–0115 (requirements EV-5) was dropped by decision
+  (2026-09-27). All zone/team numbers above are development scores; only make/miss has an untouched-video
+  result.
 - **Indoor subset** not evaluated (20 fps, tiny hoop; test-only by decision).
 - Shots after the final whistle are counted (no game-state awareness); fouled shots count as attempts (SH-5).
 - Release time is the detected start of the shooting motion + 0.4 s (measured offset); on 0105–0108 the

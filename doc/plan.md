@@ -23,7 +23,7 @@
 | 3 Shots, make/miss | **Done.** Attempts 141/141 on 0105–0108; make/miss 95.6% leave-one-video-out, **97.4% on untouched IMG_0108** |
 | 4 Zone | Shooter + floor point at release + FT context: 170/174 (97.7%, dev) |
 | 5 Teams | Per shot via the shooter's un-occluded views + track-vote fallback: 156/174 (89.7%, dev) — just below target |
-| 6 Pipeline | **Done.** `hoopstats analyze` end to end, annotated video, cloud notebook (A100 11.3 fps); final held-out test (IMG_0111–0115) open — see `doc/milestone1-report.md` |
+| 6 Pipeline | **Done.** `hoopstats analyze` end to end, annotated video, cloud notebook (A100 11.3 fps); held-out test dropped by decision (2026-09-27) — see `doc/milestone1-report.md` |
 
 ## Guiding principles
 
@@ -107,7 +107,7 @@ accuracy numbers. If ball tracking is insufficient, revisit Phase 2 before conti
 | Step | Work | Deliverable |
 |---|---|---|
 | 6.1 | CLI `analyze <video> --calib <calib.json> --rules {5v5,3x3} --out <dir> [--render]`; `stats.json`, `events.csv`, run log, annotated video (requirements §6). | CLI + outputs |
-| 6.2 | Label the test videos; final evaluation on the test set, reported per subset (Outdoor / Indoor / supplementary) and combined; error analysis. | Evaluation report |
+| 6.2 | ~~Label the test videos; final evaluation on the test set~~ — dropped by decision (2026-09-27); results are reported on the dev videos. | – |
 | 6.3 | Performance against NF-2 (≤ 3× video duration): batched inference, optional Core ML export, run heavy models only near candidate shots. | Performance report |
 | 6.4 | README (including TrackID3x3 attribution, CC BY 4.0) and demo clip. | Docs |
 
